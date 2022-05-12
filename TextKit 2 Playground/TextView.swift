@@ -10,6 +10,12 @@ import Cocoa
 class TextView: NSView {
     class func scrollableTextView() -> NSScrollView {
         let scrollView = NSScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+
+        let textView = Self()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+
+        scrollView.documentView = textView
 
         return scrollView
     }
