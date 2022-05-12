@@ -13,6 +13,7 @@
 		638ACBA7282BD26F0012D282 /* TextKit_2_PlaygroundTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638ACBA6282BD26F0012D282 /* TextKit_2_PlaygroundTests.swift */; };
 		638ACBB1282BD26F0012D282 /* TextKit_2_PlaygroundUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638ACBB0282BD26F0012D282 /* TextKit_2_PlaygroundUITests.swift */; };
 		638ACBB3282BD26F0012D282 /* TextKit_2_PlaygroundUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638ACBB2282BD26F0012D282 /* TextKit_2_PlaygroundUITestsLaunchTests.swift */; };
+		638ACBC0282BD2CC0012D282 /* TextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638ACBBF282BD2CC0012D282 /* TextView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +44,7 @@
 		638ACBAC282BD26F0012D282 /* TextKit 2 PlaygroundUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TextKit 2 PlaygroundUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		638ACBB0282BD26F0012D282 /* TextKit_2_PlaygroundUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextKit_2_PlaygroundUITests.swift; sourceTree = "<group>"; };
 		638ACBB2282BD26F0012D282 /* TextKit_2_PlaygroundUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextKit_2_PlaygroundUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		638ACBBF282BD2CC0012D282 /* TextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				638ACB96282BD26E0012D282 /* AppDelegate.swift */,
+				638ACBBF282BD2CC0012D282 /* TextView.swift */,
 				638ACB98282BD26F0012D282 /* Assets.xcassets */,
 				638ACB9A282BD26F0012D282 /* MainMenu.xib */,
 				638ACB9D282BD26F0012D282 /* TextKit_2_Playground.entitlements */,
@@ -249,6 +252,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				638ACB97282BD26E0012D282 /* AppDelegate.swift in Sources */,
+				638ACBC0282BD2CC0012D282 /* TextView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
