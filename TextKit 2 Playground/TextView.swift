@@ -10,10 +10,10 @@ import Cocoa
 class TextView: NSView, NSTextViewportLayoutControllerDelegate {
     class func scrollableTextView() -> NSScrollView {
         let scrollView = NSScrollView()
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.hasVerticalScroller = true
 
         let textView = Self()
-        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.autoresizingMask = [.width, .height]
 
         scrollView.documentView = textView
 
@@ -28,6 +28,10 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         }
         didSet {
             textLayoutManager.textViewportLayoutController.delegate = self
+            // This is done in the LayoutWithTextKit2 sample, but I don't think it's necessary.
+            // If we invalidate layout when we set textLayoutManager, we'll call viewportLayoutController.layoutViewport()
+            // which will call udpateFrameHeight when we're done
+            updateFrameHeight()
         }
     }
 
@@ -106,6 +110,29 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         }
     }
 
+    private func updateFrameHeight() {
+        let contentHeight = finalLayoutFragment?.layoutFragmentFrame.maxY ?? 0
+        let viewportHeight = enclosingScrollView?.contentSize.height ?? 0
+        let newHeight = max(contentHeight, viewportHeight)
+
+        let currentHeight = frame.height
+
+        if abs(currentHeight - newHeight) > 1e-10 {
+            frame.size.height = newHeight
+        }
+    }
+
+    private var finalLayoutFragment: NSTextLayoutFragment? {
+        var layoutFragment: NSTextLayoutFragment? = nil
+
+        textLayoutManager.enumerateTextLayoutFragments(from: textLayoutManager.documentRange.endLocation, options: [.ensuresLayout, .reverse]) { fragment in
+            layoutFragment = fragment
+            return false
+        }
+
+        return layoutFragment
+    }
+
     // MARK: - NSTextViewportLayoutControllerDelegate
 
     func viewportBounds(for textViewportLayoutController: NSTextViewportLayoutController) -> CGRect {
@@ -119,5 +146,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
     func textViewportLayoutController(_ textViewportLayoutController: NSTextViewportLayoutController, configureRenderingSurfaceFor textLayoutFragment: NSTextLayoutFragment) {
         layoutFragments.append(textLayoutFragment)
+    }
+
+    func textViewportLayoutControllerDidLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
+        updateFrameHeight()
     }
 }
