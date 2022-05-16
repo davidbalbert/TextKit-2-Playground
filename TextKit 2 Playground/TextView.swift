@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSTextContentStorageDelegate, NSTextLayoutManagerDelegate {
+class TextView: NSView, NSTextViewportLayoutControllerDelegate {
     class func scrollableTextView() -> NSScrollView {
         let scrollView = NSScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -20,25 +20,60 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSTextContentSto
         return scrollView
     }
 
+    @Invalidating(.layout, .display) var textContentStorage = NSTextContentStorage()
+    @Invalidating(.layout, .display) var textContainer = NSTextContainer()
+    @Invalidating(.layout, .display) var textLayoutManager = NSTextLayoutManager() {
+        willSet {
+            textLayoutManager.textViewportLayoutController.delegate = nil
+        }
+        didSet {
+            textLayoutManager.textViewportLayoutController.delegate = self
+        }
+    }
+
+    private var viewportLayoutController: NSTextViewportLayoutController {
+        textLayoutManager.textViewportLayoutController
+    }
+
+    private var layoutFragments: [NSTextLayoutFragment] = []
+
+    var textStorage: NSTextStorage {
+        get {
+            if let textStorage = textContentStorage.textStorage {
+                return textStorage
+            } else {
+                let textStorage = NSTextStorage()
+                textContentStorage.textStorage = textStorage
+                return textStorage
+            }
+        }
+        set {
+            textContentStorage.textStorage = newValue
+        }
+    }
+
+    var string: String {
+        get {
+            textContentStorage.textStorage?.string ?? ""
+        }
+        set {
+            if let textStorage = textContentStorage.textStorage {
+                textStorage.mutableString.setString(newValue)
+            } else {
+                textContentStorage.textStorage = NSTextStorage(string: newValue)
+            }
+        }
+    }
+
+    override var isFlipped: Bool {
+        true
+    }
+
     override var frame: NSRect {
         didSet {
             textContainer.size = CGSize(width: bounds.width, height: 0)
         }
     }
-
-    var string: String {
-        textContentStorage.textStorage!.string
-    }
-
-    var textContentStorage = NSTextContentStorage()
-    var textLayoutManager = NSTextLayoutManager()
-    var textContainer = NSTextContainer()
-
-    var viewportLayoutController: NSTextViewportLayoutController {
-        textLayoutManager.textViewportLayoutController
-    }
-
-    var layoutFragments: [NSTextLayoutFragment] = []
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -52,20 +87,12 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSTextContentSto
 
     func setup() {
         textLayoutManager.textContainer = textContainer
-        textContentStorage.delegate = self
-        textLayoutManager.delegate = self
         textLayoutManager.textViewportLayoutController.delegate = self
         textContentStorage.addTextLayoutManager(textLayoutManager)
-        textContainer.lineFragmentPadding = 5
-        print(textContainer.lineFragmentPadding)
     }
 
     override func layout() {
         viewportLayoutController.layoutViewport()
-    }
-
-    override var isFlipped: Bool {
-        true
     }
 
     override func draw(_ dirtyRect: NSRect) {
@@ -79,6 +106,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSTextContentSto
         }
     }
 
+    // MARK: - NSTextViewportLayoutControllerDelegate
+
     func viewportBounds(for textViewportLayoutController: NSTextViewportLayoutController) -> CGRect {
         // TODO: make this take into account responsive scrolling overdraw with preparedContectRect
         return bounds
@@ -91,9 +120,4 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSTextContentSto
     func textViewportLayoutController(_ textViewportLayoutController: NSTextViewportLayoutController, configureRenderingSurfaceFor textLayoutFragment: NSTextLayoutFragment) {
         layoutFragments.append(textLayoutFragment)
     }
-
-    func textViewportLayoutControllerDidLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
-        print(layoutFragments.map { [$0.renderingSurfaceBounds.origin, $0.layoutFragmentFrame.origin] })
-    }
 }
-
