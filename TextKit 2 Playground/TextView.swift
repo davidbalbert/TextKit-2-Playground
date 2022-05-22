@@ -32,7 +32,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
             // If we invalidate layout when we set textLayoutManager, we'll call viewportLayoutController.layoutViewport()
             // which will call updateFrameHeight when we're done. We probably do need updateTextContainerSize. If the
             // textLayoutManager has a new textContainer, it has to be updated.
-            updateFrameHeight()
+            updateFrameHeightIfNeeded()
             updateTextContainerSize()
         }
     }
@@ -118,7 +118,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         }
     }
 
-    private func updateFrameHeight() {
+    private func updateFrameHeightIfNeeded() {
         guard let scrollView = enclosingScrollView else {
             return
         }
@@ -161,6 +161,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
     }
 
     func textViewportLayoutControllerDidLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
-        updateFrameHeight()
+        updateFrameHeightIfNeeded()
     }
 }
