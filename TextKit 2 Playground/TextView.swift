@@ -30,8 +30,10 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
             textLayoutManager.textViewportLayoutController.delegate = self
             // This is done in the LayoutWithTextKit2 sample, but I don't think it's necessary.
             // If we invalidate layout when we set textLayoutManager, we'll call viewportLayoutController.layoutViewport()
-            // which will call udpateFrameHeight when we're done
+            // which will call updateFrameHeight when we're done. We probably do need updateTextContainerSize. If the
+            // textLayoutManager has a new textContainer, it has to be updated.
             updateFrameHeight()
+            updateTextContainerSize()
         }
     }
 
@@ -73,12 +75,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         true
     }
 
-    override var frame: NSRect {
-        didSet {
-            textContainer.size = CGSize(width: bounds.width, height: 0)
-        }
-    }
-
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         setup()
@@ -96,6 +92,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
     }
 
     override func layout() {
+        super.layout()
         viewportLayoutController.layoutViewport()
     }
 
@@ -110,15 +107,30 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         }
     }
 
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        updateTextContainerSize()
+    }
+
+    private func updateTextContainerSize() {
+        if (textContainer.size.width != bounds.width) {
+            textContainer.size = CGSize(width: frame.width, height: 0)
+        }
+    }
+
     private func updateFrameHeight() {
+        guard let scrollView = enclosingScrollView else {
+            return
+        }
+
         let contentHeight = finalLayoutFragment?.layoutFragmentFrame.maxY ?? 0
-        let viewportHeight = enclosingScrollView?.contentSize.height ?? 0
+        let viewportHeight = scrollView.contentSize.height
         let newHeight = max(contentHeight, viewportHeight)
 
         let currentHeight = frame.height
 
         if abs(currentHeight - newHeight) > 1e-10 {
-            frame.size.height = newHeight
+            setFrameSize(NSSize(width: frame.width, height: newHeight))
         }
     }
 
