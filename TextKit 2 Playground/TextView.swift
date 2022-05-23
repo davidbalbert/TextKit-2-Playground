@@ -8,6 +8,33 @@
 import Cocoa
 
 class TextView: NSView, NSTextViewportLayoutControllerDelegate {
+//    func scrollableTextKit2TextView() -> NSScrollView {
+//        let textContainer = NSTextContainer(size: .zero)
+//        textContainer.widthTracksTextView = true
+//
+//        let textLayoutManager = NSTextLayoutManager()
+//        textLayoutManager.textContainer = textContainer
+//
+//        let textContentStorage = NSTextContentStorage()
+//        textContentStorage.addTextLayoutManager(textLayoutManager)
+//        textContentStorage.primaryTextLayoutManager = textLayoutManager
+//
+//        let textView = NSTextView(frame: .zero, textContainer: textContainer)
+//
+//        let scrollView = NSScrollView()
+//        scrollView.hasVerticalScroller = true
+//        scrollView.drawsBackground = false
+//        scrollView.documentView = textView
+//
+//        textView.isRichText = false
+//        textView.usesRuler = false
+//        textView.isVerticallyResizable = true
+//        textView.autoresizingMask = [.width, .height]
+//
+//        return scrollView
+//    }
+
+
     class func scrollableTextView() -> NSScrollView {
         let scrollView = NSScrollView()
         scrollView.hasVerticalScroller = true
@@ -20,53 +47,54 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         return scrollView
     }
 
-    @Invalidating(.layout, .display) var textContentStorage = NSTextContentStorage()
-    @Invalidating(.layout, .display) var textContainer = NSTextContainer()
-    @Invalidating(.layout, .display) var textLayoutManager = NSTextLayoutManager() {
+    // TODO: figure out why I can't decorate with @Invalidating without specifying wrappedValue
+    /*@Invalidating(.layout, .display) */ var textContentStorage: NSTextContentStorage?
+    /*@Invalidating(.layout, .display)*/ var textLayoutManager: NSTextLayoutManager? {
         willSet {
-            textLayoutManager.textViewportLayoutController.delegate = nil
+            textLayoutManager?.textViewportLayoutController.delegate = nil
         }
         didSet {
-            textLayoutManager.textViewportLayoutController.delegate = self
-            // This is done in the LayoutWithTextKit2 sample, but I don't think it's necessary.
-            // If we invalidate layout when we set textLayoutManager, we'll call viewportLayoutController.layoutViewport()
-            // which will call updateFrameHeight when we're done. We probably do need updateTextContainerSize. If the
-            // textLayoutManager has a new textContainer, it has to be updated.
-            updateFrameHeightIfNeeded()
+            textLayoutManager?.textViewportLayoutController.delegate = self
+            // The LayoutWithTextKit2 sample also calls updateFrameHeightIfNeeded(). I don't think we need
+            // to do that here. Setting textLayoutManager invalidates layout. Layout() calls
+            // viewportLayoutController.layoutViewport(), which eventually calls updateFrameHeightIfNeeded().
             updateTextContainerSize()
         }
     }
 
-    private var viewportLayoutController: NSTextViewportLayoutController {
-        textLayoutManager.textViewportLayoutController
+    private var viewportLayoutController: NSTextViewportLayoutController? {
+        textLayoutManager?.textViewportLayoutController
     }
 
-    private var layoutFragments: [NSTextLayoutFragment] = []
-
-    var textStorage: NSTextStorage {
+    var textContainer: NSTextContainer? {
         get {
-            if let textStorage = textContentStorage.textStorage {
-                return textStorage
-            } else {
-                let textStorage = NSTextStorage()
-                textContentStorage.textStorage = textStorage
-                return textStorage
-            }
+            textLayoutManager?.textContainer
         }
         set {
-            textContentStorage.textStorage = newValue
+            // TODO: do we have to do something smarter here (like take other TextKit objects from the textContainer)
+            textLayoutManager?.textContainer = newValue
+        }
+    }
+
+    var textStorage: NSTextStorage? {
+        get {
+            textContentStorage?.textStorage
+        }
+        set {
+            // TODO: do we have to do something smarter here (like take other TextKit objects from the textStorage)
+            textContentStorage?.textStorage = newValue
         }
     }
 
     var string: String {
         get {
-            textContentStorage.textStorage?.string ?? ""
+            textContentStorage?.textStorage?.string ?? ""
         }
         set {
-            if let textStorage = textContentStorage.textStorage {
+            if let textStorage = textContentStorage?.textStorage {
                 textStorage.mutableString.setString(newValue)
             } else {
-                textContentStorage.textStorage = NSTextStorage(string: newValue)
+                textContentStorage?.textStorage = NSTextStorage(string: newValue)
             }
         }
     }
@@ -75,25 +103,37 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         true
     }
 
-    override init(frame frameRect: NSRect) {
+    private var layoutFragments: [NSTextLayoutFragment] = []
+
+    convenience override init(frame frameRect: NSRect) {
+        let textContainer = NSTextContainer()
+        textContainer.widthTracksTextView = true // TODO: we don't actually consult this yet
+
+        let textLayoutManager = NSTextLayoutManager()
+        textLayoutManager.textContainer = textContainer
+
+        let textContentStorage = NSTextContentStorage()
+        textContentStorage.addTextLayoutManager(textLayoutManager)
+        textContentStorage.primaryTextLayoutManager = textLayoutManager
+
+        self.init(frame: frameRect, textContainer: textContainer)
+    }
+
+    init(frame frameRect: NSRect, textContainer: NSTextContainer?) {
+        textLayoutManager = textContainer?.textLayoutManager
+        textContentStorage = textContainer?.textLayoutManager?.textContentManager as? NSTextContentStorage
         super.init(frame: frameRect)
-        setup()
+
+        viewportLayoutController?.delegate = self
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setup()
-    }
-
-    func setup() {
-        textLayoutManager.textContainer = textContainer
-        textLayoutManager.textViewportLayoutController.delegate = self
-        textContentStorage.addTextLayoutManager(textLayoutManager)
     }
 
     override func layout() {
         super.layout()
-        viewportLayoutController.layoutViewport()
+        viewportLayoutController?.layoutViewport()
     }
 
     override func draw(_ dirtyRect: NSRect) {
@@ -113,8 +153,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
     }
 
     private func updateTextContainerSize() {
-        if (textContainer.size.width != bounds.width) {
-            textContainer.size = CGSize(width: frame.width, height: 0)
+        if (textContainer?.size.width != bounds.width) {
+            textContainer?.size = CGSize(width: frame.width, height: 0)
         }
     }
 
@@ -135,6 +175,10 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
     }
 
     private var finalLayoutFragment: NSTextLayoutFragment? {
+        guard let textLayoutManager = textLayoutManager else {
+            return nil
+        }
+
         var layoutFragment: NSTextLayoutFragment? = nil
 
         textLayoutManager.enumerateTextLayoutFragments(from: textLayoutManager.documentRange.endLocation, options: [.ensuresLayout, .reverse]) { fragment in
