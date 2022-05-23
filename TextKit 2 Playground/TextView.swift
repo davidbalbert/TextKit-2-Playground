@@ -47,9 +47,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         return scrollView
     }
 
-    // TODO: figure out why I can't decorate with @Invalidating without specifying wrappedValue
-    /*@Invalidating(.layout, .display) */ var textContentStorage: NSTextContentStorage?
-    /*@Invalidating(.layout, .display)*/ var textLayoutManager: NSTextLayoutManager? {
+    @Invalidating(.layout, .display) var textContentStorage: NSTextContentStorage? = nil
+    @Invalidating(.layout, .display) var textLayoutManager: NSTextLayoutManager? = nil {
         willSet {
             textLayoutManager?.textViewportLayoutController.delegate = nil
         }
