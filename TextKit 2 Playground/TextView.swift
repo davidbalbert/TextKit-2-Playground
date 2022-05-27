@@ -188,11 +188,32 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         return layoutFragment
     }
 
+    override func viewWillMove(toSuperview newSuperview: NSView?) {
+        if let clipView = enclosingScrollView?.contentView {
+            NotificationCenter.default.removeObserver(self, name: NSView.boundsDidChangeNotification, object: clipView)
+        }
+    }
+
+    override func viewDidMoveToSuperview() {
+        if let clipView = enclosingScrollView?.contentView {
+            NotificationCenter.default.addObserver(self, selector: #selector(contentViewDidChangeBounds(_:)), name: NSView.boundsDidChangeNotification, object: clipView)
+        }
+    }
+
+    @objc func contentViewDidChangeBounds(_ notification: Notification) {
+        needsLayout = true
+        needsDisplay = true
+    }
+
     // MARK: - NSTextViewportLayoutControllerDelegate
 
     func viewportBounds(for textViewportLayoutController: NSTextViewportLayoutController) -> CGRect {
         // TODO: make this take into account responsive scrolling overdraw with preparedContectRect
-        return bounds
+        if let scrollView = enclosingScrollView {
+            return scrollView.contentView.bounds
+        } else {
+            return bounds
+        }
     }
 
     func textViewportLayoutControllerWillLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
