@@ -61,7 +61,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         }
     }
 
-    private var viewportLayoutController: NSTextViewportLayoutController? {
+    private var textViewportLayoutController: NSTextViewportLayoutController? {
         textLayoutManager?.textViewportLayoutController
     }
 
@@ -123,7 +123,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         textContentStorage = textContainer?.textLayoutManager?.textContentManager as? NSTextContentStorage
         super.init(frame: frameRect)
 
-        viewportLayoutController?.delegate = self
+        textViewportLayoutController?.delegate = self
     }
 
     required init?(coder: NSCoder) {
@@ -132,7 +132,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
     override func layout() {
         super.layout()
-        viewportLayoutController?.layoutViewport()
+        textViewportLayoutController?.layoutViewport()
     }
 
     override func draw(_ dirtyRect: NSRect) {
