@@ -196,11 +196,12 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
     override func viewDidMoveToSuperview() {
         if let clipView = enclosingScrollView?.contentView {
-            NotificationCenter.default.addObserver(self, selector: #selector(contentViewDidChangeBounds(_:)), name: NSView.boundsDidChangeNotification, object: clipView)
+            clipView.postsBoundsChangedNotifications = true
+            NotificationCenter.default.addObserver(self, selector: #selector(clipViewDidChangeBounds(_:)), name: NSView.boundsDidChangeNotification, object: clipView)
         }
     }
 
-    @objc func contentViewDidChangeBounds(_ notification: Notification) {
+    @objc func clipViewDidChangeBounds(_ notification: Notification) {
         needsLayout = true
         needsDisplay = true
     }
