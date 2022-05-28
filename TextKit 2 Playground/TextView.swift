@@ -108,16 +108,14 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         super.init(coder: coder)
     }
 
-    override func layout() {
-        super.layout()
-        textViewportLayoutController?.layoutViewport()
-    }
+    private var viewportRect: NSRect = .zero
 
     override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
-
         NSColor.textBackgroundColor.set()
         dirtyRect.fill()
+
+        viewportRect = dirtyRect
+        textViewportLayoutController?.layoutViewport()
 
         for fragment in layoutFragments {
             fragment.draw(at: fragment.layoutFragmentFrame.origin, in: NSGraphicsContext.current!.cgContext)
@@ -166,33 +164,11 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         return layoutFragment
     }
 
-    override func viewWillMove(toSuperview newSuperview: NSView?) {
-        if let clipView = enclosingScrollView?.contentView {
-            NotificationCenter.default.removeObserver(self, name: NSView.boundsDidChangeNotification, object: clipView)
-        }
-    }
-
-    override func viewDidMoveToSuperview() {
-        if let clipView = enclosingScrollView?.contentView {
-            clipView.postsBoundsChangedNotifications = true
-            NotificationCenter.default.addObserver(self, selector: #selector(clipViewDidChangeBounds(_:)), name: NSView.boundsDidChangeNotification, object: clipView)
-        }
-    }
-
-    @objc func clipViewDidChangeBounds(_ notification: Notification) {
-        needsLayout = true
-        needsDisplay = true
-    }
-
     // MARK: - NSTextViewportLayoutControllerDelegate
 
     func viewportBounds(for textViewportLayoutController: NSTextViewportLayoutController) -> CGRect {
         // TODO: make this take into account responsive scrolling overdraw with preparedContectRect
-        if let scrollView = enclosingScrollView {
-            return scrollView.contentView.bounds
-        } else {
-            return bounds
-        }
+        return viewportRect
     }
 
     func textViewportLayoutControllerWillLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
