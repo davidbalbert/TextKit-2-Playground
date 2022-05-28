@@ -13,7 +13,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
         let scrollView = NSScrollView()
         scrollView.hasVerticalScroller = true
-        scrollView.drawsBackground = false
+        // TODO: when we're drawing paragraphs into CALayers, we can disable drawsBackground. Our root layer will never move, and will draw its background.
+        // scrollView.drawsBackground = false
         scrollView.documentView = textView
 
         textView.autoresizingMask = [.width, .height]
