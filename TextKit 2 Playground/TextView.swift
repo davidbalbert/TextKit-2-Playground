@@ -8,41 +8,15 @@
 import Cocoa
 
 class TextView: NSView, NSTextViewportLayoutControllerDelegate {
-//    func scrollableTextKit2TextView() -> NSScrollView {
-//        let textContainer = NSTextContainer(size: .zero)
-//        textContainer.widthTracksTextView = true
-//
-//        let textLayoutManager = NSTextLayoutManager()
-//        textLayoutManager.textContainer = textContainer
-//
-//        let textContentStorage = NSTextContentStorage()
-//        textContentStorage.addTextLayoutManager(textLayoutManager)
-//        textContentStorage.primaryTextLayoutManager = textLayoutManager
-//
-//        let textView = NSTextView(frame: .zero, textContainer: textContainer)
-//
-//        let scrollView = NSScrollView()
-//        scrollView.hasVerticalScroller = true
-//        scrollView.drawsBackground = false
-//        scrollView.documentView = textView
-//
-//        textView.isRichText = false
-//        textView.usesRuler = false
-//        textView.isVerticallyResizable = true
-//        textView.autoresizingMask = [.width, .height]
-//
-//        return scrollView
-//    }
-
-
     class func scrollableTextView() -> NSScrollView {
+        let textView = Self()
+
         let scrollView = NSScrollView()
         scrollView.hasVerticalScroller = true
-
-        let textView = Self()
-        textView.autoresizingMask = [.width, .height]
-
+        scrollView.drawsBackground = false
         scrollView.documentView = textView
+
+        textView.autoresizingMask = [.width, .height]
 
         return scrollView
     }
