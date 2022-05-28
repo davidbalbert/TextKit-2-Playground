@@ -76,6 +76,10 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         true
     }
 
+    override var isOpaque: Bool {
+        true
+    }
+
     private var layoutFragments: [NSTextLayoutFragment] = []
 
     convenience override init(frame frameRect: NSRect) {
