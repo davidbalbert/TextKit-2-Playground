@@ -157,7 +157,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
             return nil
         }
 
-        if let previousFinalLayoutFragment = previousFinalLayoutFragment, !previousFinalLayoutFragment.layoutFragmentFrame.intersects(viewportRect) {
+        // finalLayoutFragment is read after we finish laying out the text, but before we draw. If the viewport contains
+        // the finalLayoutFragment, we don't want to invalidate it, because then we wouldn't draw it.
+        if let previousFinalLayoutFragment = previousFinalLayoutFragment, !layoutFragments.contains(previousFinalLayoutFragment){
             textLayoutManager.invalidateLayout(for: previousFinalLayoutFragment.rangeInElement)
         }
 
