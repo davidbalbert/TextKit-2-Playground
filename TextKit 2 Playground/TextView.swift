@@ -150,9 +150,15 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         }
     }
 
+    private var previousFinalLayoutFragment: NSTextLayoutFragment?
+
     private var finalLayoutFragment: NSTextLayoutFragment? {
         guard let textLayoutManager = textLayoutManager else {
             return nil
+        }
+
+        if let previousFinalLayoutFragment = previousFinalLayoutFragment {
+            textLayoutManager.invalidateLayout(for: previousFinalLayoutFragment.rangeInElement)
         }
 
         var layoutFragment: NSTextLayoutFragment? = nil
@@ -161,6 +167,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
             layoutFragment = fragment
             return false
         }
+
+        previousFinalLayoutFragment = layoutFragment
 
         return layoutFragment
     }
