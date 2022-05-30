@@ -157,7 +157,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
             return nil
         }
 
-        if let previousFinalLayoutFragment = previousFinalLayoutFragment {
+        if let previousFinalLayoutFragment = previousFinalLayoutFragment, !previousFinalLayoutFragment.layoutFragmentFrame.intersects(viewportRect) {
             textLayoutManager.invalidateLayout(for: previousFinalLayoutFragment.rangeInElement)
         }
 
