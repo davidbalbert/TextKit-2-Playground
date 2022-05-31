@@ -22,8 +22,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         return scrollView
     }
 
-    @Invalidating(.layout, .display) var textContentStorage: NSTextContentStorage? = nil
-    @Invalidating(.layout, .display) var textLayoutManager: NSTextLayoutManager? = nil {
+    @Invalidating(.display) var textContentStorage: NSTextContentStorage? = nil
+    @Invalidating(.display) var textLayoutManager: NSTextLayoutManager? = nil {
         willSet {
             textLayoutManager?.textViewportLayoutController.delegate = nil
         }
@@ -110,6 +110,13 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
     }
 
     private var viewportRect: NSRect = .zero
+
+    // Pretty sure this is unnecessary, but the LayoutWithTextKit2 sets it, so
+    // we might as well. One thing that's odd: no matter what I do, I haven't
+    // seen the scroll view ask me for overdraw without scrolling
+    override class var isCompatibleWithResponsiveScrolling: Bool {
+        true
+    }
 
     override func draw(_ dirtyRect: NSRect) {
         NSColor.textBackgroundColor.set()
