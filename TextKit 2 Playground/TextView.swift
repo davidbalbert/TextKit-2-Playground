@@ -148,7 +148,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
         let contentHeight = finalLayoutFragment?.layoutFragmentFrame.maxY ?? 0
         let viewportHeight = scrollView.contentSize.height
-        let newHeight = max(contentHeight, viewportHeight)
+        let newHeight = round(max(contentHeight, viewportHeight))
 
         let currentHeight = frame.height
 
