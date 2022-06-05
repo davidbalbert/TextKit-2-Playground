@@ -101,6 +101,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         super.init(frame: frameRect)
 
         textViewportLayoutController?.delegate = self
+
+        let trackingArea = NSTrackingArea(rect: .zero, options: [.inVisibleRect, .cursorUpdate, .activeInKeyWindow], owner: self)
+        addTrackingArea(trackingArea)
     }
 
     required init?(coder: NSCoder) {
@@ -254,5 +257,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
         // TODO: can we only ask for redisplay of the layout fragments rects that overlap with the selection?
         needsDisplay = true
+    }
+
+    override func cursorUpdate(with event: NSEvent) {
+        NSCursor.iBeam.set()
     }
 }
