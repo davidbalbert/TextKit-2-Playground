@@ -30,7 +30,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         didSet {
             textLayoutManager?.textViewportLayoutController.delegate = self
             // The LayoutWithTextKit2 sample also calls updateFrameHeightIfNeeded(). I don't think we need
-            // to do that here. Setting textLayoutManager invalidates layout. Layout() calls
+            // to do that here. Setting textLayoutManager invalidates display. draw(_:) calls
             // viewportLayoutController.layoutViewport(), which eventually calls updateFrameHeightIfNeeded().
             updateTextContainerSize()
         }
@@ -81,8 +81,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         true
     }
 
-    private var layoutFragments: [NSTextLayoutFragment] = []
-
     convenience override init(frame frameRect: NSRect) {
         let textContainer = NSTextContainer()
         textContainer.widthTracksTextView = true // TODO: we don't actually consult this yet
@@ -109,14 +107,15 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         super.init(coder: coder)
     }
 
-    private var viewportRect: NSRect = .zero
-
     // Pretty sure this is unnecessary, but the LayoutWithTextKit2 sets it, so
     // we might as well. One thing that's odd: no matter what I do, I haven't
     // seen the scroll view ask me for overdraw without scrolling
     override class var isCompatibleWithResponsiveScrolling: Bool {
         true
     }
+
+    private var viewportRect: CGRect = .zero
+    private var layoutFragments: [NSTextLayoutFragment] = []
 
     override func draw(_ dirtyRect: NSRect) {
         NSColor.textBackgroundColor.set()
@@ -125,8 +124,30 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         viewportRect = dirtyRect
         textViewportLayoutController?.layoutViewport()
 
+        drawSelections(in: dirtyRect)
+
         for fragment in layoutFragments {
             fragment.draw(at: fragment.layoutFragmentFrame.origin, in: NSGraphicsContext.current!.cgContext)
+        }
+    }
+
+    func drawSelections(in dirtyRect: NSRect) {
+        guard let textLayoutManager = textLayoutManager else {
+            return
+        }
+
+        NSColor.selectedTextBackgroundColor.set()
+
+        for textSelection in textLayoutManager.textSelections {
+            for textRange in textSelection.textRanges {
+                textLayoutManager.enumerateTextSegments(in: textRange, type: .selection) { segmentRange, segmentFrame, baselinePosition, textContainer in
+                    if segmentFrame.intersects(dirtyRect) {
+                        segmentFrame.fill()
+                    }
+
+                    return true
+                }
+            }
         }
     }
 
@@ -166,7 +187,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
         // finalLayoutFragment is read after we finish laying out the text, but before we draw. If the viewport contains
         // the finalLayoutFragment, we don't want to invalidate it, because then we wouldn't draw it.
-        if let previousFinalLayoutFragment = previousFinalLayoutFragment, !layoutFragments.contains(previousFinalLayoutFragment){
+        if let previousFinalLayoutFragment = previousFinalLayoutFragment, !layoutFragments.contains(previousFinalLayoutFragment) {
             textLayoutManager.invalidateLayout(for: previousFinalLayoutFragment.rangeInElement)
         }
 
@@ -199,5 +220,39 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
     func textViewportLayoutControllerDidLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
         updateFrameHeightIfNeeded()
+    }
+
+    // MARK: - Selection
+
+    override func mouseDown(with event: NSEvent) {
+        guard let textLayoutManager = textLayoutManager else { return }
+        let navigation = textLayoutManager.textSelectionNavigation
+        let point = convert(event.locationInWindow, from: nil)
+
+        textLayoutManager.textSelections = navigation.textSelections(interactingAt: point,
+                                                                     inContainerAt: textLayoutManager.documentRange.location,
+                                                                     anchors: [],
+                                                                     modifiers: [],
+                                                                     selecting: false,
+                                                                     bounds: .zero)
+
+        // TODO: can we only ask for redisplay of the layout fragments rects that overlap with the selection?
+        needsDisplay = true
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let textLayoutManager = textLayoutManager else { return }
+        let navigation = textLayoutManager.textSelectionNavigation
+        let point = convert(event.locationInWindow, from: nil)
+
+        textLayoutManager.textSelections = navigation.textSelections(interactingAt: point,
+                                                                     inContainerAt: textLayoutManager.documentRange.location,
+                                                                     anchors: textLayoutManager.textSelections,
+                                                                     modifiers: .extend,
+                                                                     selecting: false,
+                                                                     bounds: .zero)
+
+        // TODO: can we only ask for redisplay of the layout fragments rects that overlap with the selection?
+        needsDisplay = true
     }
 }
