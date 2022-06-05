@@ -229,8 +229,35 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
     override func mouseDown(with event: NSEvent) {
         guard let textLayoutManager = textLayoutManager else { return }
-        let navigation = textLayoutManager.textSelectionNavigation
         let point = convert(event.locationInWindow, from: nil)
+
+        if event.modifierFlags.contains(.shift) && !textLayoutManager.textSelections.isEmpty {
+            extendSelection(to: point)
+        } else {
+            startSelection(at: point)
+        }
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        extendSelection(to: point)
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        guard let textLayoutManager = textLayoutManager else { return }
+
+        // TODO: once we have editing, we should only do this if we're editable
+        // If we're not editable, we're only drawing selections, not insertion points,
+        // so we want to exclude any empty selections. If we didn't do this, if you shift-click
+        // with no existing (visible) selection, you'd get a new selection, which is confusing.
+        textLayoutManager.textSelections.removeAll { textSelection in
+            textSelection.textRanges.allSatisfy { $0.isEmpty }
+        }
+    }
+
+    func startSelection(at point: CGPoint) {
+        guard let textLayoutManager = textLayoutManager else { return }
+        let navigation = textLayoutManager.textSelectionNavigation
 
         textLayoutManager.textSelections = navigation.textSelections(interactingAt: point,
                                                                      inContainerAt: textLayoutManager.documentRange.location,
@@ -243,10 +270,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         needsDisplay = true
     }
 
-    override func mouseDragged(with event: NSEvent) {
+    func extendSelection(to point: CGPoint) {
         guard let textLayoutManager = textLayoutManager else { return }
         let navigation = textLayoutManager.textSelectionNavigation
-        let point = convert(event.locationInWindow, from: nil)
 
         textLayoutManager.textSelections = navigation.textSelections(interactingAt: point,
                                                                      inContainerAt: textLayoutManager.documentRange.location,
@@ -254,7 +280,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
                                                                      modifiers: .extend,
                                                                      selecting: false,
                                                                      bounds: .zero)
-
         // TODO: can we only ask for redisplay of the layout fragments rects that overlap with the selection?
         needsDisplay = true
     }
