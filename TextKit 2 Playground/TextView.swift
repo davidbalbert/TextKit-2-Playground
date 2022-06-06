@@ -7,7 +7,21 @@
 
 import Cocoa
 
-class TextView: NSView, NSTextViewportLayoutControllerDelegate {
+extension NSRange {
+    init?(_ textRange: NSTextRange, in provider: NSTextElementProvider) {
+        guard let location = provider.offset?(from: provider.documentRange.location, to: textRange.location) else {
+            return nil
+        }
+
+        guard let length = provider.offset?(from: textRange.location, to: textRange.endLocation) else {
+            return nil
+        }
+
+        self.init(location: location, length: length)
+    }
+}
+
+class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValidation {
     class func scrollableTextView() -> NSScrollView {
         let textView = Self()
 
@@ -339,5 +353,46 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
         didResignKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: nil) { [weak self] notification in
             self?.needsDisplay = true
         }
+    }
+
+    // MARK: - Pasteboard
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        switch menuItem.action {
+        case #selector(copy(_:)):
+            return hasSelectedText
+        default:
+            return false
+        }
+    }
+
+    private var hasSelectedText: Bool {
+        guard let textLayoutManager = textLayoutManager else {
+            return false
+        }
+
+        for textSelection in textLayoutManager.textSelections {
+            for textRange in textSelection.textRanges {
+                if !textRange.isEmpty {
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
+    @objc func copy(_ sender: Any) {
+        guard let textLayoutManager = textLayoutManager, let textContentStorage = textContentStorage, let textStorage = textStorage else {
+            return
+        }
+
+        let textRanges = textLayoutManager.textSelections.flatMap { $0.textRanges }.filter { !$0.isEmpty }
+        let nsRanges = textRanges.compactMap { NSRange($0, in: textContentStorage) }
+        let attributedStrings = nsRanges.map { textStorage.attributedSubstring(from: $0) }
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.writeObjects(attributedStrings)
     }
 }
