@@ -139,7 +139,11 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
             return
         }
 
-        NSColor.selectedTextBackgroundColor.set()
+        if windowIsKey && isFirstResponder {
+            NSColor.selectedTextBackgroundColor.set()
+        } else {
+            NSColor.unemphasizedSelectedTextBackgroundColor.set()
+        }
 
         for textSelection in textLayoutManager.textSelections {
             for textRange in textSelection.textRanges {
@@ -286,5 +290,54 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate {
 
     override func cursorUpdate(with event: NSEvent) {
         NSCursor.iBeam.set()
+    }
+
+    // MARK: - First responder
+
+    override var acceptsFirstResponder: Bool {
+        true
+    }
+
+    private var isFirstResponder: Bool {
+        window?.firstResponder == self
+    }
+
+    private var windowIsKey: Bool {
+        window?.isKeyWindow ?? false
+    }
+
+    override func becomeFirstResponder() -> Bool {
+        needsDisplay = true
+        return super.becomeFirstResponder()
+    }
+
+    override func resignFirstResponder() -> Bool {
+        needsDisplay = true
+        return super.resignFirstResponder()
+    }
+
+    private var didBecomeKeyObserver: Any?
+    private var didResignKeyObserver: Any?
+
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        if let didBecomeKeyObserver = didBecomeKeyObserver {
+            NotificationCenter.default.removeObserver(didBecomeKeyObserver)
+        }
+
+        if let didResignKeyObserver = didResignKeyObserver {
+            NotificationCenter.default.removeObserver(didResignKeyObserver)
+        }
+    }
+
+    override func viewDidMoveToWindow() {
+        guard let window = window else { return }
+
+        didBecomeKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: nil) { [weak self] notification in
+            self?.needsDisplay = true
+        }
+
+        didResignKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: nil) { [weak self] notification in
+            self?.needsDisplay = true
+        }
     }
 }
