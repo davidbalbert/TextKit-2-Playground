@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		630A736028553104007C0522 /* TextView+TextInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630A735F28553104007C0522 /* TextView+TextInput.swift */; };
 		63371574284165FE000CC61F /* Moby Dick.txt in Resources */ = {isa = PBXBuildFile; fileRef = 63371573284165FE000CC61F /* Moby Dick.txt */; };
 		638ACB97282BD26E0012D282 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638ACB96282BD26E0012D282 /* AppDelegate.swift */; };
 		638ACB99282BD26F0012D282 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 638ACB98282BD26F0012D282 /* Assets.xcassets */; };
@@ -35,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		630A735F28553104007C0522 /* TextView+TextInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextView+TextInput.swift"; sourceTree = "<group>"; };
 		63371573284165FE000CC61F /* Moby Dick.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Moby Dick.txt"; sourceTree = "<group>"; };
 		638ACB93282BD26E0012D282 /* TextKit 2 Playground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TextKit 2 Playground.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		638ACB96282BD26E0012D282 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 			children = (
 				638ACB96282BD26E0012D282 /* AppDelegate.swift */,
 				638ACBBF282BD2CC0012D282 /* TextView.swift */,
+				630A735F28553104007C0522 /* TextView+TextInput.swift */,
 				63371573284165FE000CC61F /* Moby Dick.txt */,
 				638ACB98282BD26F0012D282 /* Assets.xcassets */,
 				638ACB9A282BD26F0012D282 /* MainMenu.xib */,
@@ -256,6 +259,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				638ACB97282BD26E0012D282 /* AppDelegate.swift in Sources */,
+				630A736028553104007C0522 /* TextView+TextInput.swift in Sources */,
 				638ACBC0282BD2CC0012D282 /* TextView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

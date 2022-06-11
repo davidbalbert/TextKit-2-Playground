@@ -95,21 +95,20 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         true
     }
 
-    public var isSelectable: Bool = true {
+    @Invalidating(.display) public var isSelectable: Bool = true {
         didSet {
             if !isSelectable {
                 isEditable = false
                 textLayoutManager?.textSelections = []
-
-                needsDisplay = true
             }
         }
     }
 
-    public var isEditable: Bool = false {
+    @Invalidating(.display) public var isEditable: Bool = true {
         didSet {
             if isEditable {
                 isSelectable = true
+                updateInsertionPointTimer()
             }
         }
     }
@@ -165,6 +164,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         for fragment in layoutFragments {
             fragment.draw(at: fragment.layoutFragmentFrame.origin, in: NSGraphicsContext.current!.cgContext)
         }
+
+        drawInsertionPoints(in: dirtyRect)
     }
 
     func drawSelections(in dirtyRect: NSRect) {
@@ -178,12 +179,69 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
             NSColor.unemphasizedSelectedTextBackgroundColor.set()
         }
 
-        let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges)
+        let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
         let rangesInViewport = textRanges.compactMap { $0.intersection(viewportRange) }
 
         for textRange in rangesInViewport {
             textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { segmentRange, segmentFrame, baselinePosition, textContainer in
                 segmentFrame.fill()
+                return true
+            }
+        }
+    }
+
+    @Invalidating(.display) private var shouldDrawInsertionPoints = true
+    private var insertionPointTimer: Timer?
+
+    // TODO: split into an onInterval and offInterval and read NSTextInsertionPointBlinkPeriodOn and NSTextInsertionPointBlinkPeriodOff from defaults
+    private var insertionPointBlinkInterval: TimeInterval {
+        0.5
+    }
+
+    var caretTextRanges: [NSTextRange] {
+        guard let textLayoutManager = textLayoutManager else {
+            return []
+        }
+
+        return textLayoutManager.textSelections.flatMap(\.textRanges).filter { $0.isEmpty }
+    }
+
+    var shouldBlinkInsertionPoint: Bool {
+        isEditable && caretTextRanges.count > 0 && isFirstResponder && windowIsKey
+    }
+
+    // TODO: is there a way to run this directly after the current RunLoop tick in the same way that needsDisplay works?
+    func updateInsertionPointTimer() {
+        insertionPointTimer?.invalidate()
+
+        if shouldBlinkInsertionPoint {
+            shouldDrawInsertionPoints = true
+
+            insertionPointTimer = Timer.scheduledTimer(withTimeInterval: insertionPointBlinkInterval, repeats: true) { [weak self] timer in
+                guard let self = self else { return }
+                self.shouldDrawInsertionPoints.toggle()
+            }
+        } else {
+            shouldDrawInsertionPoints = false
+        }
+    }
+
+    func drawInsertionPoints(in dirtyRect: NSRect) {
+        guard shouldDrawInsertionPoints else { return }
+
+        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
+            return
+        }
+
+        let rangesInViewport = caretTextRanges.compactMap { $0.intersection(viewportRange) }
+
+        NSColor.black.set()
+
+        for textRange in rangesInViewport {
+            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { segmentRange, segmentFrame, baselinePosition, textContainer in
+                var caretFrame = segmentFrame
+                caretFrame.size.width = 1
+                caretFrame.fill()
                 return true
             }
         }
@@ -273,6 +331,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         } else {
             startSelection(at: point)
         }
+
+        updateInsertionPointTimer()
     }
 
     override func mouseDragged(with event: NSEvent) {
@@ -280,20 +340,20 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         let point = convert(event.locationInWindow, from: nil)
         extendSelection(to: point)
+
+        updateInsertionPointTimer()
     }
 
     override func mouseUp(with event: NSEvent) {
         guard isSelectable else { return }
 
-        guard let textLayoutManager = textLayoutManager else { return }
-
-        // TODO: once we have editing, we should only do this if we're editable
-        // If we're not editable, we're only drawing selections, not insertion points,
-        // so we want to exclude any empty selections. If we didn't do this, if you shift-click
-        // with no existing (visible) selection, you'd get a new selection, which is confusing.
-        textLayoutManager.textSelections.removeAll { textSelection in
-            textSelection.textRanges.allSatisfy { $0.isEmpty }
+        // Zero length selections are insertion points. We only allow
+        // insertion points if we're editable
+        if !isEditable {
+            removeZeroLengthSelections()
         }
+
+        updateInsertionPointTimer()
     }
 
     func startSelection(at point: CGPoint) {
@@ -325,6 +385,14 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         needsDisplay = true
     }
 
+    func removeZeroLengthSelections() {
+        guard let textLayoutManager = textLayoutManager else { return }
+
+        textLayoutManager.textSelections.removeAll { textSelection in
+            textSelection.textRanges.allSatisfy { $0.isEmpty }
+        }
+    }
+
     override func cursorUpdate(with event: NSEvent) {
         if isSelectable {
             NSCursor.iBeam.set()
@@ -347,11 +415,13 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
     override func becomeFirstResponder() -> Bool {
         needsDisplay = true
+        updateInsertionPointTimer()
         return super.becomeFirstResponder()
     }
 
     override func resignFirstResponder() -> Bool {
         needsDisplay = true
+        updateInsertionPointTimer()
         return super.resignFirstResponder()
     }
 
@@ -373,10 +443,12 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         didBecomeKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: nil) { [weak self] notification in
             self?.needsDisplay = true
+            self?.updateInsertionPointTimer()
         }
 
         didResignKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: nil) { [weak self] notification in
             self?.needsDisplay = true
+            self?.updateInsertionPointTimer()
         }
     }
 
