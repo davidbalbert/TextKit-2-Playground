@@ -453,6 +453,16 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         }
     }
 
+    override func viewWillMove(toSuperview newSuperview: NSView?) {
+        if newSuperview == nil {
+            updateInsertionPointTimer()
+        }
+    }
+
+    override func viewDidMoveToSuperview() {
+        updateInsertionPointTimer()
+    }
+
     // MARK: - Pasteboard
 
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
