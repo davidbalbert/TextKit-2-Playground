@@ -359,9 +359,21 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         switch menuItem.action {
         case #selector(copy(_:)):
             return hasSelectedText
+        case #selector(cut(_:)), #selector(paste(_:)):
+            return false
         default:
             return true
         }
+    }
+
+    class override var defaultMenu: NSMenu? {
+        let menu = NSMenu()
+
+        menu.addItem(withTitle: "Cut", action: #selector(cut(_ :)), keyEquivalent: "")
+        menu.addItem(withTitle: "Copy", action: #selector(copy(_ :)), keyEquivalent: "")
+        menu.addItem(withTitle: "Paste", action: #selector(paste(_ :)), keyEquivalent: "")
+
+        return menu
     }
 
     private var hasSelectedText: Bool {
@@ -380,6 +392,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         return false
     }
 
+    @objc func cut(_ sender: Any) {
+    }
+
     @objc func copy(_ sender: Any) {
         guard let textLayoutManager = textLayoutManager, let textContentStorage = textContentStorage, let textStorage = textStorage else {
             return
@@ -392,6 +407,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.writeObjects(attributedStrings)
+    }
+
+    @objc func paste(_ sender: Any) {
     }
 
     @objc override func selectAll(_ sender: Any?) {
