@@ -71,6 +71,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         set {
             // TODO: do we have to do something smarter here (like take other TextKit objects from the textStorage)
             textContentStorage?.textStorage = newValue
+            createInsertionPointIfNecessary()
         }
     }
 
@@ -84,6 +85,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
             } else {
                 textContentStorage?.textStorage = NSTextStorage(string: newValue)
             }
+
+            createInsertionPointIfNecessary()
         }
     }
 
@@ -110,6 +113,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
                 isSelectable = true
             }
 
+            createInsertionPointIfNecessary()
             updateInsertionPointTimer()
         }
     }
@@ -246,6 +250,20 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
                 return true
             }
         }
+    }
+
+    func createInsertionPointIfNecessary() {
+        if !isEditable {
+            return
+        }
+
+        guard let textLayoutManager = textLayoutManager else {
+            return
+        }
+
+        let textRange = NSTextRange(location: textLayoutManager.documentRange.location)
+        textLayoutManager.textSelections = [NSTextSelection(range: textRange, affinity: .downstream, granularity: .character)]
+
     }
 
     override func setFrameSize(_ newSize: NSSize) {
