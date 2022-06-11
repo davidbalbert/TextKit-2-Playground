@@ -95,6 +95,25 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         true
     }
 
+    public var isSelectable: Bool = true {
+        didSet {
+            if !isSelectable {
+                isEditable = false
+                textLayoutManager?.textSelections = []
+
+                needsDisplay = true
+            }
+        }
+    }
+
+    public var isEditable: Bool = false {
+        didSet {
+            if isEditable {
+                isSelectable = true
+            }
+        }
+    }
+
     convenience override init(frame frameRect: NSRect) {
         let textContainer = NSTextContainer()
         textContainer.widthTracksTextView = true // TODO: we don't actually consult this yet
@@ -244,6 +263,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     // MARK: - Selection
 
     override func mouseDown(with event: NSEvent) {
+        guard isSelectable else { return }
+
         guard let textLayoutManager = textLayoutManager else { return }
         let point = convert(event.locationInWindow, from: nil)
 
@@ -255,11 +276,15 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     override func mouseDragged(with event: NSEvent) {
+        guard isSelectable else { return }
+
         let point = convert(event.locationInWindow, from: nil)
         extendSelection(to: point)
     }
 
     override func mouseUp(with event: NSEvent) {
+        guard isSelectable else { return }
+
         guard let textLayoutManager = textLayoutManager else { return }
 
         // TODO: once we have editing, we should only do this if we're editable
@@ -301,7 +326,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     override func cursorUpdate(with event: NSEvent) {
-        NSCursor.iBeam.set()
+        if isSelectable {
+            NSCursor.iBeam.set()
+        }
     }
 
     // MARK: - First responder
@@ -357,6 +384,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         switch menuItem.action {
+        case #selector(selectAll(_:)):
+            return isSelectable
         case #selector(copy(_:)):
             return hasSelectedText
         case #selector(cut(_:)), #selector(paste(_:)):
@@ -413,6 +442,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     @objc override func selectAll(_ sender: Any?) {
+        guard isSelectable else { return }
+
         guard let textLayoutManager = textLayoutManager else {
             return
         }
