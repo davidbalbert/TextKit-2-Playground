@@ -149,7 +149,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     func drawSelections(in dirtyRect: NSRect) {
-        guard let textLayoutManager = textLayoutManager else {
+        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
             return
         }
 
@@ -159,15 +159,13 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
             NSColor.unemphasizedSelectedTextBackgroundColor.set()
         }
 
-        for textSelection in textLayoutManager.textSelections {
-            for textRange in textSelection.textRanges {
-                textLayoutManager.enumerateTextSegments(in: textRange, type: .selection) { segmentRange, segmentFrame, baselinePosition, textContainer in
-                    if segmentFrame.intersects(dirtyRect) {
-                        segmentFrame.fill()
-                    }
+        let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges)
+        let rangesInViewport = textRanges.compactMap { $0.intersection(viewportRange) }
 
-                    return true
-                }
+        for textRange in rangesInViewport {
+            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { segmentRange, segmentFrame, baselinePosition, textContainer in
+                segmentFrame.fill()
+                return true
             }
         }
     }
@@ -362,7 +360,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         case #selector(copy(_:)):
             return hasSelectedText
         default:
-            return false
+            return true
         }
     }
 
@@ -394,5 +392,15 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.writeObjects(attributedStrings)
+    }
+
+    @objc override func selectAll(_ sender: Any?) {
+        guard let textLayoutManager = textLayoutManager else {
+            return
+        }
+
+        textLayoutManager.textSelections = [NSTextSelection(range: textLayoutManager.documentRange, affinity: .downstream, granularity: .character)]
+        
+        needsDisplay = true
     }
 }
