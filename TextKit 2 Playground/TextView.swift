@@ -208,7 +208,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     var shouldBlinkInsertionPoint: Bool {
-        isEditable && caretTextRanges.count > 0 && isFirstResponder && windowIsKey
+        isEditable && caretTextRanges.count > 0 && isFirstResponder && windowIsKey && superview != nil
     }
 
     // TODO: is there a way to run this directly after the current RunLoop tick in the same way that needsDisplay works?
@@ -429,6 +429,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     private var didBecomeKeyObserver: Any?
     private var didResignKeyObserver: Any?
 
+    // TODO: it's possible that viewDidMoveToWindow gets called even when window was just set to nil. If that's the case, we might be able to get rid of viewWillMove(toWindow:) and put all behavior into viewDidMoveToWindow
     override func viewWillMove(toWindow newWindow: NSWindow?) {
         if let didBecomeKeyObserver = didBecomeKeyObserver {
             NotificationCenter.default.removeObserver(didBecomeKeyObserver)
@@ -450,12 +451,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         didResignKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: nil) { [weak self] notification in
             self?.needsDisplay = true
             self?.updateInsertionPointTimer()
-        }
-    }
-
-    override func viewWillMove(toSuperview newSuperview: NSView?) {
-        if newSuperview == nil {
-            updateInsertionPointTimer()
         }
     }
 
