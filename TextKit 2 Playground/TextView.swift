@@ -108,8 +108,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         didSet {
             if isEditable {
                 isSelectable = true
-                updateInsertionPointTimer()
             }
+
+            updateInsertionPointTimer()
         }
     }
 
