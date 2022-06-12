@@ -21,6 +21,9 @@ extension TextView: NSTextInputClient {
 
     override func doCommand(by selector: Selector) {
         if responds(to: selector) {
+            // All these methods return void. Is takeUnretainedValue right here?
+            // Do I need it? I got a crash when I used perform(_:) without an
+            // argument.
             _ = perform(selector, with: nil).takeUnretainedValue()
         } else {
             print("doCommandBySelector:", selector)
