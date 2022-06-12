@@ -375,6 +375,31 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         updateInsertionPointTimer()
     }
 
+    override func moveLeft(_ sender: Any?) {
+        guard isSelectable else { return }
+
+        updateSelections(direction: .left, destination: .character, extending: false)
+    }
+
+    override func moveRight(_ sender: Any?) {
+        guard isSelectable else { return }
+
+        updateSelections(direction: .right, destination: .character, extending: false)
+    }
+
+    override func moveUp(_ sender: Any?) {
+        guard isSelectable else { return }
+
+        updateSelections(direction: .up, destination: .character, extending: false)
+    }
+
+    override func moveDown(_ sender: Any?) {
+        guard isSelectable else { return }
+
+        updateSelections(direction: .down, destination: .character, extending: false)
+    }
+
+
     func startSelection(at point: CGPoint) {
         guard let textLayoutManager = textLayoutManager else { return }
         let navigation = textLayoutManager.textSelectionNavigation
@@ -402,6 +427,19 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
                                                                      bounds: .zero)
         // TODO: can we only ask for redisplay of the layout fragments rects that overlap with the selection?
         needsDisplay = true
+    }
+
+    // TODO: handle zero length selections when isEditable is false
+    func updateSelections(direction: NSTextSelectionNavigation.Direction, destination: NSTextSelectionNavigation.Destination, extending: Bool) {
+        guard let textLayoutManager = textLayoutManager else { return }
+        let navigation = textLayoutManager.textSelectionNavigation
+
+        textLayoutManager.textSelections = textLayoutManager.textSelections.compactMap { textSelection in
+            navigation.destinationSelection(for: textSelection, direction: direction, destination: destination, extending: extending, confined: false)
+        }
+
+        needsDisplay = true
+        updateInsertionPointTimer()
     }
 
     func removeZeroLengthSelections() {

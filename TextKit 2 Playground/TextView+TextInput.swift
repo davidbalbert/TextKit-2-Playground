@@ -11,6 +11,7 @@ extension TextView: NSTextInputClient {
     override func keyDown(with event: NSEvent) {
         guard isEditable else { return }
 
+        // TODO: should I use interpretKeyEvents here instead?
         inputContext?.handleEvent(event)
     }
 
@@ -19,7 +20,11 @@ extension TextView: NSTextInputClient {
     }
 
     override func doCommand(by selector: Selector) {
-        print("doCommandBySelector:", selector)
+        if responds(to: selector) {
+            _ = perform(selector, with: nil).takeUnretainedValue()
+        } else {
+            print("doCommandBySelector:", selector)
+        }
     }
 
     func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
