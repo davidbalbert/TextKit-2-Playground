@@ -47,6 +47,7 @@ extension TextView {
 
     // MARK: - Character navigation
     // List of all key commands for completeness testing: https://support.apple.com/en-us/HT201236
+    // NSStandardKeyBindingResponding: https://developer.apple.com/documentation/appkit/nsstandardkeybindingresponding
 
     override func moveLeft(_ sender: Any?) {
         updateSelections(direction: .left, destination: .character, extending: false)

@@ -7,7 +7,7 @@
 
 import Cocoa
 
-extension TextView: NSTextInputClient {
+extension TextView {
     override func keyDown(with event: NSEvent) {
         guard isEditable else { return }
 
@@ -15,8 +15,62 @@ extension TextView: NSTextInputClient {
         inputContext?.handleEvent(event)
     }
 
+    override func deleteBackward(_ sender: Any?) {
+        guard isEditable else { return }
+
+        guard let textContentStorage = textContentStorage, let textSelections = textLayoutManager?.textSelections else {
+            return
+        }
+
+        textContentStorage.performEditingTransaction {
+            // TODO: if textRange.location is > 0 and textRange.length == 0, expand textRange backwards by 1
+            for textRange in textSelections.flatMap(\.textRanges) {
+                replaceCharacters(in: textRange, with: "")
+            }
+        }
+    }
+
+    func replaceCharacters(in textRange: NSTextRange, with string: String) {
+        replaceCharacters(in: textRange, with: NSAttributedString(string: string))
+    }
+
+    // TODO: Maybe we should work with AttributedStrings instead?
+    func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString) {
+        guard let textContentStorage = textContentStorage, let textStorage = textStorage else {
+            return
+        }
+
+        textContentStorage.performEditingTransaction {
+            textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
+        }
+    }
+}
+
+extension TextView: NSTextInputClient {
     func insertText(_ string: Any, replacementRange: NSRange) {
-        print("insertText", string, replacementRange)
+        guard isEditable else { return }
+
+        // I seem to always get {NSNotFound, 0} for replacementRange. For now, I'm
+        // going to ignore replacement range, but if I get a real replacementRange,
+        // I want to know about it.
+        assert(replacementRange.location == NSNotFound)
+
+        guard let textContentStorage = textContentStorage, let textSelections = textLayoutManager?.textSelections else {
+            return
+        }
+
+        textContentStorage.performEditingTransaction {
+            for textRange in textSelections.flatMap(\.textRanges) {
+                switch string {
+                case let attributedString as NSAttributedString:
+                    replaceCharacters(in: textRange, with: attributedString)
+                case let string as String:
+                    replaceCharacters(in: textRange, with: string)
+                default:
+                    continue
+                }
+            }
+        }
     }
 
     override func doCommand(by selector: Selector) {
@@ -38,7 +92,11 @@ extension TextView: NSTextInputClient {
     func selectedRange() -> NSRange {
         print("selectedRange")
 
-        return NSRange(location: 0, length: 0)
+        guard let textContentStorage = textContentStorage, let textRange = textLayoutManager?.textSelections.first?.textRanges.first else {
+            return NSRange(location: NSNotFound, length: 0)
+        }
+
+        return NSRange(textRange, in: textContentStorage)
     }
 
     func markedRange() -> NSRange {

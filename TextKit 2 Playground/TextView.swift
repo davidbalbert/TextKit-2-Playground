@@ -7,20 +7,6 @@
 
 import Cocoa
 
-extension NSRange {
-    init?(_ textRange: NSTextRange, in provider: NSTextElementProvider) {
-        guard let location = provider.offset?(from: provider.documentRange.location, to: textRange.location) else {
-            return nil
-        }
-
-        guard let length = provider.offset?(from: textRange.location, to: textRange.endLocation) else {
-            return nil
-        }
-
-        self.init(location: location, length: length)
-    }
-}
-
 class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValidation {
     class func scrollableTextView() -> NSScrollView {
         let textView = Self()
