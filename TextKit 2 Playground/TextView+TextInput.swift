@@ -16,15 +16,53 @@ extension TextView {
     }
 
     override func deleteBackward(_ sender: Any?) {
+        delete(direction: .backward, destination: .character)
+    }
+
+    override func deleteForward(_ sender: Any?) {
+        delete(direction: .forward, destination: .character)
+    }
+
+    override func deleteWordBackward(_ sender: Any?) {
+        delete(direction: .backward, destination: .word)
+    }
+
+    override func deleteWordForward(_ sender: Any?) {
+        delete(direction: .forward, destination: .word)
+    }
+
+    override func deleteToBeginningOfLine(_ sender: Any?) {
+        delete(direction: .backward, destination: .line)
+    }
+
+    override func deleteToEndOfLine(_ sender: Any?) {
+        delete(direction: .forward, destination: .line)
+    }
+
+    override func deleteToBeginningOfParagraph(_ sender: Any?) {
+        delete(direction: .backward, destination: .paragraph)
+    }
+
+    override func deleteToEndOfParagraph(_ sender: Any?) {
+        delete(direction: .forward, destination: .paragraph)
+    }
+
+    func delete(direction: NSTextSelectionNavigation.Direction, destination: NSTextSelectionNavigation.Destination) {
         guard isEditable else { return }
 
-        guard let textContentStorage = textContentStorage, let textSelections = textLayoutManager?.textSelections else {
+        guard let textContentStorage = textContentStorage, let textLayoutManager = textLayoutManager else {
             return
         }
 
+        let deletionRanges = textLayoutManager.textSelections.flatMap { textSelection in
+            textLayoutManager.textSelectionNavigation.deletionRanges(for: textSelection,
+                                                                     direction: direction,
+                                                                     destination: destination,
+                                                                     allowsDecomposition: false)
+        }
+
         textContentStorage.performEditingTransaction {
-            // TODO: if textRange.location is > 0 and textRange.length == 0, expand textRange backwards by 1
-            for textRange in textSelections.flatMap(\.textRanges) {
+            for textRange in deletionRanges {
                 replaceCharacters(in: textRange, with: "")
             }
         }
@@ -45,6 +83,7 @@ extension TextView {
         }
 
         needsDisplay = true
+        updateInsertionPointTimer()
     }
 }
 
