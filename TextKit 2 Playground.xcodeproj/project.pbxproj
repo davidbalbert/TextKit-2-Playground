@@ -104,8 +104,8 @@
 			isa = PBXGroup;
 			children = (
 				638ACB96282BD26E0012D282 /* AppDelegate.swift */,
-				638ACBBF282BD2CC0012D282 /* TextView.swift */,
 				630A736328566BA9007C0522 /* NSRange+Extensions.swift */,
+				638ACBBF282BD2CC0012D282 /* TextView.swift */,
 				630A735F28553104007C0522 /* TextView+TextInput.swift */,
 				630A736128563BE1007C0522 /* TextView+TextSelection.swift */,
 				63371573284165FE000CC61F /* Moby Dick.txt */,
