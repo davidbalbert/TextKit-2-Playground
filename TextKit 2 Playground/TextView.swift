@@ -175,7 +175,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         for textRange in rangesInViewport {
             textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { segmentRange, segmentFrame, baselinePosition, textContainer in
-                segmentFrame.fill()
+                NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest).fill()
                 return true
             }
         }
@@ -230,7 +230,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         for textRange in rangesInViewport {
             textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { segmentRange, segmentFrame, baselinePosition, textContainer in
-                var caretFrame = segmentFrame
+                var caretFrame = NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest)
                 caretFrame.size.width = 1
                 caretFrame.fill()
                 return true
