@@ -43,6 +43,8 @@ extension TextView {
         textContentStorage.performEditingTransaction {
             textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
         }
+
+        needsDisplay = true
     }
 }
 
