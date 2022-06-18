@@ -21,7 +21,8 @@ extension TextView {
             startSelection(at: point)
         }
 
-        needsLayout = true
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
         updateInsertionPointTimer()
     }
 
@@ -31,7 +32,8 @@ extension TextView {
         let point = convert(event.locationInWindow, from: nil)
         extendSelection(to: point)
 
-        needsLayout = true
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
         updateInsertionPointTimer()
     }
 
@@ -44,7 +46,8 @@ extension TextView {
             removeZeroLengthSelections()
         }
 
-        needsLayout = true
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
         updateInsertionPointTimer()
     }
 
@@ -215,7 +218,8 @@ extension TextView {
                                             confined: confined)
         }
 
-        needsLayout = true
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
         updateInsertionPointTimer()
     }
 

@@ -83,6 +83,7 @@ extension TextView {
         }
 
         needsLayout = true
+        selectionLayer.setNeedsLayout()
         updateInsertionPointTimer()
     }
 }

@@ -36,7 +36,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         }
     }
 
-    private var textViewportLayoutController: NSTextViewportLayoutController? {
+    internal var textViewportLayoutController: NSTextViewportLayoutController? {
         textLayoutManager?.textViewportLayoutController
     }
 
@@ -142,6 +142,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
     override func prepareContent(in rect: NSRect) {
         needsLayout = true
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
         super.prepareContent(in: rect)
     }
 
@@ -151,12 +153,22 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     var contentLayer: CALayer = NonAnimatingLayer()
     var insertionPointLayer: CALayer = NonAnimatingLayer()
 
+    lazy var selectionLayoutManager = {
+        SelectionLayoutManager(textView: self)
+    }()
+
+    lazy var insertionPointLayoutManager = {
+        InsertionPointLayoutManager(textView: self)
+    }()
+
     override func layout() {
         super.layout()
 
         guard let layer = layer else { return }
 
         if selectionLayer.superlayer == nil {
+            selectionLayer.layoutManager = selectionLayoutManager
+
             selectionLayer.anchorPoint = CGPoint(x: 0, y: 0)
             selectionLayer.name = "Selections"
             layer.addSublayer(selectionLayer)
@@ -169,6 +181,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         }
 
         if insertionPointLayer.superlayer == nil {
+            insertionPointLayer.layoutManager = insertionPointLayoutManager as! CALayoutManager
+
             insertionPointLayer.anchorPoint = CGPoint(x: 0, y: 0)
             insertionPointLayer.name = "Insertion points"
             layer.addSublayer(insertionPointLayer)
@@ -182,42 +196,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         // TODO: it would be nice to:
         //   a) Not throw out the selection layers earch time
         //   b) not re-layout the text every time we have to re-layout the selection
-        layoutSelections()
-        layoutInsertionPoints()
-    }
-
-    func layoutSelections() {
-        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
-            return
-        }
-
-        selectionLayer.sublayers = nil
-
-        let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
-        let rangesInViewport = textRanges.compactMap { $0.intersection(viewportRange) }
-
-        let color: NSColor
-        if windowIsKey && isFirstResponder {
-            color = NSColor.selectedTextBackgroundColor
-        } else {
-            color = NSColor.unemphasizedSelectedTextBackgroundColor
-        }
-
-        for textRange in rangesInViewport {
-            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
-                let layer = NonAnimatingLayer()
-                layer.anchorPoint = CGPoint(x: 0, y: 0)
-
-                let pixelAlignedFrame = NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest)
-                layer.bounds = CGRect(origin: .zero, size: pixelAlignedFrame.size)
-                layer.position = pixelAlignedFrame.origin
-                layer.backgroundColor = color.cgColor
-
-                selectionLayer.addSublayer(layer)
-
-                return true
-            }
-        }
+        insertionPointLayer.layoutSublayers()
     }
 
     override func updateLayer() {
@@ -237,33 +216,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         }
 
         return textLayoutManager.textSelections.flatMap(\.textRanges).filter { $0.isEmpty }
-    }
-
-    func layoutInsertionPoints() {
-        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
-            return
-        }
-
-        insertionPointLayer.sublayers = nil
-
-        let rangesInViewport = insertionPointTextRanges.compactMap { $0.intersection(viewportRange) }
-
-        for textRange in rangesInViewport {
-            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
-                var insertionPointFrame = NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest)
-                insertionPointFrame.size.width = 1
-
-                let layer = NonAnimatingLayer()
-                layer.anchorPoint = .zero
-                layer.bounds = CGRect(origin: .zero, size: insertionPointFrame.size)
-                layer.position = insertionPointFrame.origin
-                layer.backgroundColor = NSColor.black.cgColor
-
-                insertionPointLayer.addSublayer(layer)
-
-                return true
-            }
-        }
     }
 
     var shouldBlinkInsertionPoint: Bool {
@@ -411,22 +363,22 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         true
     }
 
-    private var isFirstResponder: Bool {
+    internal var isFirstResponder: Bool {
         window?.firstResponder == self
     }
 
-    private var windowIsKey: Bool {
+    internal var windowIsKey: Bool {
         window?.isKeyWindow ?? false
     }
 
     override func becomeFirstResponder() -> Bool {
-        needsLayout = true
+        selectionLayer.setNeedsLayout()
         updateInsertionPointTimer()
         return super.becomeFirstResponder()
     }
 
     override func resignFirstResponder() -> Bool {
-        needsLayout = true
+        selectionLayer.setNeedsLayout()
         updateInsertionPointTimer()
         return super.resignFirstResponder()
     }
@@ -449,12 +401,12 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         guard let window = window else { return }
 
         didBecomeKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: nil) { [weak self] notification in
-            self?.needsLayout = true
+            self?.selectionLayer.setNeedsLayout()
             self?.updateInsertionPointTimer()
         }
 
         didResignKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: nil) { [weak self] notification in
-            self?.needsLayout = true
+            self?.selectionLayer.setNeedsLayout()
             self?.updateInsertionPointTimer()
         }
     }
@@ -533,6 +485,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         textLayoutManager.textSelections = [NSTextSelection(range: textLayoutManager.documentRange, affinity: .downstream, granularity: .character)]
         
-        needsLayout = true
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
     }
 }
