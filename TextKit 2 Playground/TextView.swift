@@ -196,6 +196,13 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
         let rangesInViewport = textRanges.compactMap { $0.intersection(viewportRange) }
 
+        let color: NSColor
+        if windowIsKey && isFirstResponder {
+            color = NSColor.selectedTextBackgroundColor
+        } else {
+            color = NSColor.unemphasizedSelectedTextBackgroundColor
+        }
+
         for textRange in rangesInViewport {
             textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
                 let layer = NonAnimatingLayer()
@@ -204,7 +211,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
                 let pixelAlignedFrame = NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest)
                 layer.bounds = CGRect(origin: .zero, size: pixelAlignedFrame.size)
                 layer.position = pixelAlignedFrame.origin
-                layer.backgroundColor = NSColor.selectedTextBackgroundColor.cgColor
+                layer.backgroundColor = color.cgColor
 
                 selectionLayer.addSublayer(layer)
 
@@ -413,13 +420,13 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     override func becomeFirstResponder() -> Bool {
-        needsDisplay = true
+        needsLayout = true
         updateInsertionPointTimer()
         return super.becomeFirstResponder()
     }
 
     override func resignFirstResponder() -> Bool {
-        needsDisplay = true
+        needsLayout = true
         updateInsertionPointTimer()
         return super.resignFirstResponder()
     }
@@ -442,12 +449,12 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         guard let window = window else { return }
 
         didBecomeKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: nil) { [weak self] notification in
-            self?.needsDisplay = true
+            self?.needsLayout = true
             self?.updateInsertionPointTimer()
         }
 
         didResignKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: nil) { [weak self] notification in
-            self?.needsDisplay = true
+            self?.needsLayout = true
             self?.updateInsertionPointTimer()
         }
     }
