@@ -82,7 +82,7 @@ extension TextView {
             textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
         }
 
-        needsDisplay = true
+        needsLayout = true
         updateInsertionPointTimer()
     }
 }

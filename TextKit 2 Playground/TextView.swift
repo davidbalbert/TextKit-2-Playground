@@ -22,8 +22,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         return scrollView
     }
 
-    @Invalidating(.display) var textContentStorage: NSTextContentStorage? = nil
-    @Invalidating(.display) var textLayoutManager: NSTextLayoutManager? = nil {
+    @Invalidating(.layout) var textContentStorage: NSTextContentStorage? = nil
+    @Invalidating(.layout) var textLayoutManager: NSTextLayoutManager? = nil {
         willSet {
             textLayoutManager?.textViewportLayoutController.delegate = nil
         }
@@ -84,7 +84,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         true
     }
 
-    @Invalidating(.display) public var isSelectable: Bool = true {
+    @Invalidating(.layout) public var isSelectable: Bool = false {
         didSet {
             if !isSelectable {
                 isEditable = false
@@ -93,7 +93,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         }
     }
 
-    @Invalidating(.display) public var isEditable: Bool = true {
+    @Invalidating(.layout) public var isEditable: Bool = false {
         didSet {
             if isEditable {
                 isSelectable = true
@@ -140,45 +140,31 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         true
     }
 
-    private var viewportRect: CGRect = .zero
-    private var layoutFragments: [NSTextLayoutFragment] = []
-
-    override func draw(_ dirtyRect: NSRect) {
-        NSColor.textBackgroundColor.set()
-        dirtyRect.fill()
-
-        viewportRect = dirtyRect
-        textViewportLayoutController?.layoutViewport()
-
-        drawSelections(in: dirtyRect)
-
-        for fragment in layoutFragments {
-            fragment.draw(at: fragment.layoutFragmentFrame.origin, in: NSGraphicsContext.current!.cgContext)
-        }
-
-        drawInsertionPoints(in: dirtyRect)
+    override func prepareContent(in rect: NSRect) {
+        needsLayout = true
+        super.prepareContent(in: rect)
     }
 
-    func drawSelections(in dirtyRect: NSRect) {
-        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
-            return
+    var fragmentLayerMap: NSMapTable<NSTextLayoutFragment, CALayer> = .weakToWeakObjects()
+
+    var contentLayer: CALayer = NonAnimatingLayer()
+
+    override func layout() {
+        super.layout()
+
+        guard let layer = layer else { return }
+
+        if contentLayer.superlayer == nil {
+            contentLayer.anchorPoint = CGPoint(x: 0, y: 0)
+            layer.addSublayer(contentLayer)
         }
 
-        if windowIsKey && isFirstResponder {
-            NSColor.selectedTextBackgroundColor.set()
-        } else {
-            NSColor.unemphasizedSelectedTextBackgroundColor.set()
-        }
+        contentLayer.bounds = layer.bounds
 
-        let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
-        let rangesInViewport = textRanges.compactMap { $0.intersection(viewportRange) }
+        textViewportLayoutController?.layoutViewport()
+    }
 
-        for textRange in rangesInViewport {
-            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { segmentRange, segmentFrame, baselinePosition, textContainer in
-                NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest).fill()
-                return true
-            }
-        }
+    override func updateLayer() {
     }
 
     @Invalidating(.display) private var shouldDrawInsertionPoints = true
@@ -214,27 +200,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
             }
         } else {
             shouldDrawInsertionPoints = false
-        }
-    }
-
-    func drawInsertionPoints(in dirtyRect: NSRect) {
-        guard shouldDrawInsertionPoints else { return }
-
-        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
-            return
-        }
-
-        let rangesInViewport = caretTextRanges.compactMap { $0.intersection(viewportRange) }
-
-        NSColor.black.set()
-
-        for textRange in rangesInViewport {
-            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { segmentRange, segmentFrame, baselinePosition, textContainer in
-                var caretFrame = NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest)
-                caretFrame.size.width = 1
-                caretFrame.fill()
-                return true
-            }
         }
     }
 
@@ -288,9 +253,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         // finalLayoutFragment is read after we finish laying out the text, but before we draw. If the viewport contains
         // the finalLayoutFragment, we don't want to invalidate it, because then we wouldn't draw it.
-        if let previousFinalLayoutFragment = previousFinalLayoutFragment, !layoutFragments.contains(previousFinalLayoutFragment) {
-            textLayoutManager.invalidateLayout(for: previousFinalLayoutFragment.rangeInElement)
-        }
+//        if let previousFinalLayoutFragment = previousFinalLayoutFragment, !layoutFragments.contains(previousFinalLayoutFragment) {
+//            textLayoutManager.invalidateLayout(for: previousFinalLayoutFragment.rangeInElement)
+//        }
 
         var layoutFragment: NSTextLayoutFragment? = nil
 
@@ -307,16 +272,54 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     // MARK: - NSTextViewportLayoutControllerDelegate
 
     func viewportBounds(for textViewportLayoutController: NSTextViewportLayoutController) -> CGRect {
-        // TODO: make this take into account responsive scrolling overdraw with preparedContectRect
-        return viewportRect
+        var viewportBounds: CGRect
+        if preparedContentRect.intersects(visibleRect) {
+            viewportBounds = preparedContentRect.union(visibleRect)
+        } else {
+            viewportBounds = visibleRect
+        }
+
+        viewportBounds.size.width = bounds.width
+
+        assert(viewportBounds.minY >= 0)
+
+        return viewportBounds
     }
 
     func textViewportLayoutControllerWillLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
-        layoutFragments = []
+        contentLayer.sublayers = nil
     }
 
     func textViewportLayoutController(_ textViewportLayoutController: NSTextViewportLayoutController, configureRenderingSurfaceFor textLayoutFragment: NSTextLayoutFragment) {
-        layoutFragments.append(textLayoutFragment)
+        // The textLayoutFragment has a bounds and a frame, like a view, but the bounds and the
+        // frame are different sizes. The layoutFragmentFrame is generally smaller and inset within
+        // the renderingSurfaceBounds (blank lines have bounds that are smaller than the frames).
+        //
+        // We want our layer's size to be set by the renderingSurfaceBounds (the actual area that
+        // the layout fragment needs to draw into), and we need to set our position by the layout
+        // fragment frame.
+        //
+        // The bounds origin seems to never be at zero, which means (conceptually) that the
+        // layoutFragmentFrame is translated within the bounds. In order to use the frame's
+        // origin as our position, we set our layer's anchor to be the the frame's origin
+        // in the (slightly translated) coordinate space of the frame.
+
+
+        let layer = fragmentLayerMap.object(forKey: textLayoutFragment) ?? TextLayoutFragmentLayer(textLayoutFragment: textLayoutFragment)
+
+        let oldFrame = layer.frame
+
+        layer.bounds = textLayoutFragment.renderingSurfaceBounds
+        layer.anchorPoint = CGPoint(x: -layer.bounds.origin.x/layer.bounds.width, y: -layer.bounds.origin.y/layer.bounds.height)
+        layer.position = textLayoutFragment.layoutFragmentFrame.origin
+        layer.contentsScale = window?.backingScaleFactor ?? 1.0
+
+        if layer.frame != oldFrame {
+            layer.setNeedsDisplay()
+        }
+
+        fragmentLayerMap.setObject(layer, forKey: textLayoutFragment)
+        contentLayer.addSublayer(layer)
     }
 
     func textViewportLayoutControllerDidLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
