@@ -33,7 +33,6 @@ class TextLayoutFragmentLayer: NonAnimatingLayer {
     }
 
     override func draw(in ctx: CGContext) {
-        print("+", terminator: "")
         textLayoutFragment.draw(at: .zero, in: ctx)
     }
 }

@@ -84,7 +84,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         true
     }
 
-    @Invalidating(.layout) public var isSelectable: Bool = false {
+    @Invalidating(.layout) public var isSelectable: Bool = true {
         didSet {
             if !isSelectable {
                 isEditable = false
@@ -147,6 +147,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
     var fragmentLayerMap: NSMapTable<NSTextLayoutFragment, TextLayoutFragmentLayer> = .weakToWeakObjects()
 
+    var selectionLayer: CALayer = NonAnimatingLayer()
     var contentLayer: CALayer = NonAnimatingLayer()
 
     override func layout() {
@@ -154,17 +155,52 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         guard let layer = layer else { return }
 
+        if selectionLayer.superlayer == nil {
+            selectionLayer.anchorPoint = CGPoint(x: 0, y: 0)
+            layer.addSublayer(selectionLayer)
+        }
+
         if contentLayer.superlayer == nil {
             contentLayer.anchorPoint = CGPoint(x: 0, y: 0)
             layer.addSublayer(contentLayer)
         }
 
+        selectionLayer.bounds = layer.bounds
         contentLayer.bounds = layer.bounds
 
         textViewportLayoutController?.layoutViewport()
+        layoutSelections()
+    }
+
+    func layoutSelections() {
+        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
+            return
+        }
+
+        selectionLayer.sublayers = nil
+
+        let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
+        let rangesInViewport = textRanges.compactMap { $0.intersection(viewportRange) }
+
+        for textRange in rangesInViewport {
+            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
+                let layer = NonAnimatingLayer()
+                layer.anchorPoint = CGPoint(x: 0, y: 0)
+
+                let pixelAlignedFrame = NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest)
+                layer.bounds = CGRect(origin: .zero, size: pixelAlignedFrame.size)
+                layer.position = pixelAlignedFrame.origin
+                layer.backgroundColor = NSColor.selectedTextBackgroundColor.cgColor
+
+                selectionLayer.addSublayer(layer)
+
+                return true
+            }
+        }
     }
 
     override func updateLayer() {
+        // Noop (for now?). It's presence tells AppKit that we want to have our own backing layer.
     }
 
     @Invalidating(.display) private var shouldDrawInsertionPoints = true

@@ -184,8 +184,8 @@ extension TextView {
                                                                      selecting: false,
                                                                      bounds: .zero)
 
-        // TODO: can we only ask for redisplay of the layout fragments rects that overlap with the selection?
-        needsDisplay = true
+        // TODO: only layout the selections, not the text again.
+        needsLayout = true
     }
 
     func extendSelection(to point: CGPoint) {
@@ -198,8 +198,8 @@ extension TextView {
                                                                      modifiers: .extend,
                                                                      selecting: false,
                                                                      bounds: .zero)
-        // TODO: can we only ask for redisplay of the layout fragments rects that overlap with the selection?
-        needsDisplay = true
+
+        needsLayout = true
     }
 
     // TODO: handle zero length selections when isEditable is false
@@ -217,7 +217,7 @@ extension TextView {
                                             confined: confined)
         }
 
-        needsDisplay = true
+        needsLayout = true
         updateInsertionPointTimer()
     }
 
