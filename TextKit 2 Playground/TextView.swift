@@ -169,6 +169,9 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         contentLayer.bounds = layer.bounds
 
         textViewportLayoutController?.layoutViewport()
+        // TODO: it would be nice to:
+        //   a) Not throw out the selection layers earch time
+        //   b) not re-layout the text every time we have to re-layout the selection
         layoutSelections()
     }
 
