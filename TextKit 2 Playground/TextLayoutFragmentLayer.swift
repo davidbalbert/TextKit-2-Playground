@@ -13,6 +13,7 @@ class TextLayoutFragmentLayer: NonAnimatingLayer {
     init(textLayoutFragment: NSTextLayoutFragment) {
         self.textLayoutFragment = textLayoutFragment
         super.init()
+        needsDisplayOnBoundsChange = true
     }
 
     required init?(coder: NSCoder) {
@@ -22,21 +23,17 @@ class TextLayoutFragmentLayer: NonAnimatingLayer {
     override init(layer: Any) {
         self.textLayoutFragment = (layer as! Self).textLayoutFragment
         super.init(layer: layer)
+        needsDisplayOnBoundsChange = true
     }
 
     func updateGeometry() {
-        let oldFrame = frame
-
         bounds = textLayoutFragment.renderingSurfaceBounds
         anchorPoint = CGPoint(x: -bounds.origin.x/bounds.width, y: -bounds.origin.y/bounds.height)
         position = textLayoutFragment.layoutFragmentFrame.origin
-
-        if frame != oldFrame {
-            setNeedsDisplay()
-        }
     }
 
     override func draw(in ctx: CGContext) {
+        print("+", terminator: "")
         textLayoutFragment.draw(at: .zero, in: ctx)
     }
 }

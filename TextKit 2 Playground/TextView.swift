@@ -304,7 +304,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         // origin as our position, we set our layer's anchor to be the the frame's origin
         // in the (slightly translated) coordinate space of the frame.
 
-
         let layer = fragmentLayerMap.object(forKey: textLayoutFragment) ?? TextLayoutFragmentLayer(textLayoutFragment: textLayoutFragment)
         layer.contentsScale = window?.backingScaleFactor ?? 1.0
         layer.updateGeometry()
