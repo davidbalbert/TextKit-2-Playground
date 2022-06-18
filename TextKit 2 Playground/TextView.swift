@@ -145,7 +145,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         super.prepareContent(in: rect)
     }
 
-    var fragmentLayerMap: NSMapTable<NSTextLayoutFragment, CALayer> = .weakToWeakObjects()
+    var fragmentLayerMap: NSMapTable<NSTextLayoutFragment, TextLayoutFragmentLayer> = .weakToWeakObjects()
 
     var contentLayer: CALayer = NonAnimatingLayer()
 
@@ -306,17 +306,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
 
         let layer = fragmentLayerMap.object(forKey: textLayoutFragment) ?? TextLayoutFragmentLayer(textLayoutFragment: textLayoutFragment)
-
-        let oldFrame = layer.frame
-
-        layer.bounds = textLayoutFragment.renderingSurfaceBounds
-        layer.anchorPoint = CGPoint(x: -layer.bounds.origin.x/layer.bounds.width, y: -layer.bounds.origin.y/layer.bounds.height)
-        layer.position = textLayoutFragment.layoutFragmentFrame.origin
         layer.contentsScale = window?.backingScaleFactor ?? 1.0
-
-        if layer.frame != oldFrame {
-            layer.setNeedsDisplay()
-        }
+        layer.updateGeometry()
 
         fragmentLayerMap.setObject(layer, forKey: textLayoutFragment)
         contentLayer.addSublayer(layer)

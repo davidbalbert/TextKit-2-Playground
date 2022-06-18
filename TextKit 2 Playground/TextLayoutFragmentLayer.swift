@@ -24,6 +24,18 @@ class TextLayoutFragmentLayer: NonAnimatingLayer {
         super.init(layer: layer)
     }
 
+    func updateGeometry() {
+        let oldFrame = frame
+
+        bounds = textLayoutFragment.renderingSurfaceBounds
+        anchorPoint = CGPoint(x: -bounds.origin.x/bounds.width, y: -bounds.origin.y/bounds.height)
+        position = textLayoutFragment.layoutFragmentFrame.origin
+
+        if frame != oldFrame {
+            setNeedsDisplay()
+        }
+    }
+
     override func draw(in ctx: CGContext) {
         textLayoutFragment.draw(at: .zero, in: ctx)
     }
