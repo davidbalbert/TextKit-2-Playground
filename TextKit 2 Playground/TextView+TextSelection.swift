@@ -21,6 +21,7 @@ extension TextView {
             startSelection(at: point)
         }
 
+        needsLayout = true
         updateInsertionPointTimer()
     }
 
@@ -30,6 +31,7 @@ extension TextView {
         let point = convert(event.locationInWindow, from: nil)
         extendSelection(to: point)
 
+        needsLayout = true
         updateInsertionPointTimer()
     }
 
@@ -42,6 +44,7 @@ extension TextView {
             removeZeroLengthSelections()
         }
 
+        needsLayout = true
         updateInsertionPointTimer()
     }
 
@@ -183,9 +186,6 @@ extension TextView {
                                                                      modifiers: [],
                                                                      selecting: false,
                                                                      bounds: .zero)
-
-        // TODO: only layout the selections, not the text again.
-        needsLayout = true
     }
 
     func extendSelection(to point: CGPoint) {
@@ -198,8 +198,6 @@ extension TextView {
                                                                      modifiers: .extend,
                                                                      selecting: false,
                                                                      bounds: .zero)
-
-        needsLayout = true
     }
 
     // TODO: handle zero length selections when isEditable is false

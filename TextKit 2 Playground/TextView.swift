@@ -93,7 +93,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         }
     }
 
-    @Invalidating(.layout) public var isEditable: Bool = false {
+    @Invalidating(.layout) public var isEditable: Bool = true {
         didSet {
             if isEditable {
                 isSelectable = true
@@ -149,6 +149,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
     var selectionLayer: CALayer = NonAnimatingLayer()
     var contentLayer: CALayer = NonAnimatingLayer()
+    var insertionPointLayer: CALayer = NonAnimatingLayer()
 
     override func layout() {
         super.layout()
@@ -157,22 +158,32 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         if selectionLayer.superlayer == nil {
             selectionLayer.anchorPoint = CGPoint(x: 0, y: 0)
+            selectionLayer.name = "Selections"
             layer.addSublayer(selectionLayer)
         }
 
         if contentLayer.superlayer == nil {
             contentLayer.anchorPoint = CGPoint(x: 0, y: 0)
+            contentLayer.name = "Content"
             layer.addSublayer(contentLayer)
+        }
+
+        if insertionPointLayer.superlayer == nil {
+            insertionPointLayer.anchorPoint = CGPoint(x: 0, y: 0)
+            insertionPointLayer.name = "Insertion points"
+            layer.addSublayer(insertionPointLayer)
         }
 
         selectionLayer.bounds = layer.bounds
         contentLayer.bounds = layer.bounds
+        insertionPointLayer.bounds = layer.bounds
 
         textViewportLayoutController?.layoutViewport()
         // TODO: it would be nice to:
         //   a) Not throw out the selection layers earch time
         //   b) not re-layout the text every time we have to re-layout the selection
         layoutSelections()
+        layoutInsertionPoints()
     }
 
     func layoutSelections() {
@@ -206,7 +217,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         // Noop (for now?). It's presence tells AppKit that we want to have our own backing layer.
     }
 
-    @Invalidating(.display) private var shouldDrawInsertionPoints = true
     private var insertionPointTimer: Timer?
 
     // TODO: split into an onInterval and offInterval and read NSTextInsertionPointBlinkPeriodOn and NSTextInsertionPointBlinkPeriodOff from defaults
@@ -214,7 +224,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         0.5
     }
 
-    var caretTextRanges: [NSTextRange] {
+    var insertionPointTextRanges: [NSTextRange] {
         guard let textLayoutManager = textLayoutManager else {
             return []
         }
@@ -222,8 +232,35 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         return textLayoutManager.textSelections.flatMap(\.textRanges).filter { $0.isEmpty }
     }
 
+    func layoutInsertionPoints() {
+        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
+            return
+        }
+
+        insertionPointLayer.sublayers = nil
+
+        let rangesInViewport = insertionPointTextRanges.compactMap { $0.intersection(viewportRange) }
+
+        for textRange in rangesInViewport {
+            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
+                var insertionPointFrame = NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest)
+                insertionPointFrame.size.width = 1
+
+                let layer = NonAnimatingLayer()
+                layer.anchorPoint = .zero
+                layer.bounds = CGRect(origin: .zero, size: insertionPointFrame.size)
+                layer.position = insertionPointFrame.origin
+                layer.backgroundColor = NSColor.black.cgColor
+
+                insertionPointLayer.addSublayer(layer)
+
+                return true
+            }
+        }
+    }
+
     var shouldBlinkInsertionPoint: Bool {
-        isEditable && caretTextRanges.count > 0 && isFirstResponder && windowIsKey && superview != nil
+        isEditable && insertionPointTextRanges.count > 0 && isFirstResponder && windowIsKey && superview != nil
     }
 
     // TODO: is there a way to run this directly after the current RunLoop tick in the same way that needsDisplay works?
@@ -231,14 +268,14 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         insertionPointTimer?.invalidate()
 
         if shouldBlinkInsertionPoint {
-            shouldDrawInsertionPoints = true
+            insertionPointLayer.isHidden = false
 
             insertionPointTimer = Timer.scheduledTimer(withTimeInterval: insertionPointBlinkInterval, repeats: true) { [weak self] timer in
                 guard let self = self else { return }
-                self.shouldDrawInsertionPoints.toggle()
+                self.insertionPointLayer.isHidden.toggle()
             }
         } else {
-            shouldDrawInsertionPoints = false
+            insertionPointLayer.isHidden = true
         }
     }
 
@@ -489,6 +526,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         textLayoutManager.textSelections = [NSTextSelection(range: textLayoutManager.documentRange, affinity: .downstream, granularity: .character)]
         
-        needsDisplay = true
+        needsLayout = true
     }
 }
