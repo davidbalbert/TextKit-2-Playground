@@ -181,7 +181,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         }
 
         if insertionPointLayer.superlayer == nil {
-            insertionPointLayer.layoutManager = insertionPointLayoutManager as! CALayoutManager
+            insertionPointLayer.layoutManager = insertionPointLayoutManager
 
             insertionPointLayer.anchorPoint = CGPoint(x: 0, y: 0)
             insertionPointLayer.name = "Insertion points"
