@@ -222,7 +222,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         isEditable && insertionPointTextRanges.count > 0 && isFirstResponder && windowIsKey && superview != nil
     }
 
-    // TODO: is there a way to run this directly after the current RunLoop tick in the same way that needsDisplay works?
     func updateInsertionPointTimer() {
         insertionPointTimer?.invalidate()
 
@@ -328,7 +327,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     func textViewportLayoutController(_ textViewportLayoutController: NSTextViewportLayoutController, configureRenderingSurfaceFor textLayoutFragment: NSTextLayoutFragment) {
         // The textLayoutFragment has a bounds and a frame, like a view, but the bounds and the
         // frame are different sizes. The layoutFragmentFrame is generally smaller and inset within
-        // the renderingSurfaceBounds (blank lines have bounds that are smaller than the frames).
+        // the renderingSurfaceBounds, but not always (blank lines have bounds that are smaller
+        // than the frames).
         //
         // We want our layer's size to be set by the renderingSurfaceBounds (the actual area that
         // the layout fragment needs to draw into), and we need to set our position by the layout
