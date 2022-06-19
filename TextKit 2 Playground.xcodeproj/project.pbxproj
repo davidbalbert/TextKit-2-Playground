@@ -22,6 +22,11 @@
 		63921D77285E3C4B00961F8E /* TextLayoutFragmentLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D76285E3C4B00961F8E /* TextLayoutFragmentLayer.swift */; };
 		63921D79285E7FAF00961F8E /* SelectionLayoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D78285E7FAF00961F8E /* SelectionLayoutManager.swift */; };
 		63921D7B285E88FE00961F8E /* InsertionPointLayoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D7A285E88FE00961F8E /* InsertionPointLayoutManager.swift */; };
+		63921D7D285EB98A00961F8E /* WeakDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D7C285EB98A00961F8E /* WeakDictionary.swift */; };
+		63921D7F285F712500961F8E /* WeakDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D7E285F712500961F8E /* WeakDictionaryTests.swift */; };
+		63921D81285F776D00961F8E /* CGPoint+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D80285F776D00961F8E /* CGPoint+Hashable.swift */; };
+		63921D83285F778100961F8E /* CGSize+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D82285F778100961F8E /* CGSize+Hashable.swift */; };
+		63921D85285F778D00961F8E /* CGRect+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D84285F778D00961F8E /* CGRect+Hashable.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,6 +66,11 @@
 		63921D76285E3C4B00961F8E /* TextLayoutFragmentLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLayoutFragmentLayer.swift; sourceTree = "<group>"; };
 		63921D78285E7FAF00961F8E /* SelectionLayoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionLayoutManager.swift; sourceTree = "<group>"; };
 		63921D7A285E88FE00961F8E /* InsertionPointLayoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsertionPointLayoutManager.swift; sourceTree = "<group>"; };
+		63921D7C285EB98A00961F8E /* WeakDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeakDictionary.swift; sourceTree = "<group>"; };
+		63921D7E285F712500961F8E /* WeakDictionaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeakDictionaryTests.swift; sourceTree = "<group>"; };
+		63921D80285F776D00961F8E /* CGPoint+Hashable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGPoint+Hashable.swift"; sourceTree = "<group>"; };
+		63921D82285F778100961F8E /* CGSize+Hashable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGSize+Hashable.swift"; sourceTree = "<group>"; };
+		63921D84285F778D00961F8E /* CGRect+Hashable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGRect+Hashable.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,18 +122,22 @@
 			isa = PBXGroup;
 			children = (
 				638ACB96282BD26E0012D282 /* AppDelegate.swift */,
-				630A736328566BA9007C0522 /* NSRange+Extensions.swift */,
-				63921D74285E370000961F8E /* NonAnimatingLayer.swift */,
+				63921D80285F776D00961F8E /* CGPoint+Hashable.swift */,
+				63921D84285F778D00961F8E /* CGRect+Hashable.swift */,
+				63921D82285F778100961F8E /* CGSize+Hashable.swift */,
 				63921D7A285E88FE00961F8E /* InsertionPointLayoutManager.swift */,
+				63921D74285E370000961F8E /* NonAnimatingLayer.swift */,
+				630A736328566BA9007C0522 /* NSRange+Extensions.swift */,
 				63921D78285E7FAF00961F8E /* SelectionLayoutManager.swift */,
-				638ACBBF282BD2CC0012D282 /* TextView.swift */,
 				63921D76285E3C4B00961F8E /* TextLayoutFragmentLayer.swift */,
+				638ACBBF282BD2CC0012D282 /* TextView.swift */,
 				630A735F28553104007C0522 /* TextView+TextInput.swift */,
 				630A736128563BE1007C0522 /* TextView+TextSelection.swift */,
+				63921D7C285EB98A00961F8E /* WeakDictionary.swift */,
+				638ACB9D282BD26F0012D282 /* TextKit_2_Playground.entitlements */,
 				63371573284165FE000CC61F /* Moby Dick.txt */,
 				638ACB98282BD26F0012D282 /* Assets.xcassets */,
 				638ACB9A282BD26F0012D282 /* MainMenu.xib */,
-				638ACB9D282BD26F0012D282 /* TextKit_2_Playground.entitlements */,
 			);
 			path = "TextKit 2 Playground";
 			sourceTree = "<group>";
@@ -132,6 +146,7 @@
 			isa = PBXGroup;
 			children = (
 				638ACBA6282BD26F0012D282 /* TextKit_2_PlaygroundTests.swift */,
+				63921D7E285F712500961F8E /* WeakDictionaryTests.swift */,
 			);
 			path = "TextKit 2 PlaygroundTests";
 			sourceTree = "<group>";
@@ -276,10 +291,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63921D81285F776D00961F8E /* CGPoint+Hashable.swift in Sources */,
 				638ACB97282BD26E0012D282 /* AppDelegate.swift in Sources */,
+				63921D7D285EB98A00961F8E /* WeakDictionary.swift in Sources */,
 				630A736228563BE1007C0522 /* TextView+TextSelection.swift in Sources */,
+				63921D83285F778100961F8E /* CGSize+Hashable.swift in Sources */,
 				63921D75285E370000961F8E /* NonAnimatingLayer.swift in Sources */,
 				630A736428566BA9007C0522 /* NSRange+Extensions.swift in Sources */,
+				63921D85285F778D00961F8E /* CGRect+Hashable.swift in Sources */,
 				63921D79285E7FAF00961F8E /* SelectionLayoutManager.swift in Sources */,
 				63921D77285E3C4B00961F8E /* TextLayoutFragmentLayer.swift in Sources */,
 				63921D7B285E88FE00961F8E /* InsertionPointLayoutManager.swift in Sources */,
@@ -293,6 +312,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				638ACBA7282BD26F0012D282 /* TextKit_2_PlaygroundTests.swift in Sources */,
+				63921D7F285F712500961F8E /* WeakDictionaryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,7 +471,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "TextKit 2 Playground/TextKit_2_Playground.entitlements";
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -479,7 +499,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "TextKit 2 Playground/TextKit_2_Playground.entitlements";
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;

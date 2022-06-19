@@ -9,6 +9,7 @@ import Cocoa
 
 class SelectionLayoutManager: NSObject, CALayoutManager {
     weak var textView: TextView?
+    var frameLayerMap: WeakDictionary<CGRect, CALayer> = WeakDictionary()
 
     init(textView: TextView) {
         self.textView = textView
@@ -22,8 +23,6 @@ class SelectionLayoutManager: NSObject, CALayoutManager {
             return
         }
 
-        layer.sublayers = nil
-
         let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
         let rangesInViewport = textRanges.compactMap { $0.intersection(viewportRange) }
 
@@ -34,20 +33,30 @@ class SelectionLayoutManager: NSObject, CALayoutManager {
             color = NSColor.unemphasizedSelectedTextBackgroundColor
         }
 
+        layer.sublayers = nil
+
         for textRange in rangesInViewport {
             textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
-                let l = NonAnimatingLayer()
-                l.anchorPoint = CGPoint(x: 0, y: 0)
-
-                let pixelAlignedFrame = NSIntegralRectWithOptions(segmentFrame, .alignAllEdgesNearest)
-                l.bounds = CGRect(origin: .zero, size: pixelAlignedFrame.size)
-                l.position = pixelAlignedFrame.origin
+                let l = frameLayerMap[segmentFrame] ?? makeLayer(for: segmentFrame)
                 l.backgroundColor = color.cgColor
 
+                frameLayerMap[segmentFrame] = l
                 layer.addSublayer(l)
 
                 return true
             }
         }
+    }
+
+    func makeLayer(for rect: CGRect) -> CALayer {
+        let l = NonAnimatingLayer()
+
+        l.anchorPoint = CGPoint(x: 0, y: 0)
+
+        let pixelAlignedFrame = NSIntegralRectWithOptions(rect, .alignAllEdgesNearest)
+        l.bounds = CGRect(origin: .zero, size: pixelAlignedFrame.size)
+        l.position = pixelAlignedFrame.origin
+
+        return l
     }
 }
