@@ -203,6 +203,14 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         // Noop (for now?). It's presence tells AppKit that we want to have our own backing layer.
     }
 
+    func selectionNeedsDisplay() {
+        guard let sublayers = selectionLayer.sublayers else { return }
+
+        for layer in sublayers {
+            layer.setNeedsDisplay()
+        }
+    }
+
     private var insertionPointTimer: Timer?
 
     // TODO: split into an onInterval and offInterval and read NSTextInsertionPointBlinkPeriodOn and NSTextInsertionPointBlinkPeriodOff from defaults
@@ -372,13 +380,13 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     override func becomeFirstResponder() -> Bool {
-        selectionLayer.setNeedsLayout()
+        selectionNeedsDisplay()
         updateInsertionPointTimer()
         return super.becomeFirstResponder()
     }
 
     override func resignFirstResponder() -> Bool {
-        selectionLayer.setNeedsLayout()
+        selectionNeedsDisplay()
         updateInsertionPointTimer()
         return super.resignFirstResponder()
     }
@@ -401,12 +409,12 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         guard let window = window else { return }
 
         didBecomeKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: nil) { [weak self] notification in
-            self?.selectionLayer.setNeedsLayout()
+            self?.selectionNeedsDisplay()
             self?.updateInsertionPointTimer()
         }
 
         didResignKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: nil) { [weak self] notification in
-            self?.selectionLayer.setNeedsLayout()
+            self?.selectionNeedsDisplay()
             self?.updateInsertionPointTimer()
         }
     }

@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class SelectionLayoutManager: NSObject, CALayoutManager {
+class SelectionLayoutManager: NSObject, CALayoutManager, CALayerDelegate {
     weak var textView: TextView?
     var frameLayerMap: WeakDictionary<CGRect, CALayer> = WeakDictionary()
 
@@ -17,28 +17,22 @@ class SelectionLayoutManager: NSObject, CALayoutManager {
     }
 
     func layoutSublayers(of layer: CALayer) {
-        guard let textView = textView else { return }
+        // Only layoutSublayers for the textView.selectionLayer
+        guard isEqual(to: layer.layoutManager) else { return }
 
-        guard let textLayoutManager = textView.textLayoutManager, let viewportRange = textView.textViewportLayoutController?.viewportRange else {
+        guard let textLayoutManager = textView?.textLayoutManager, let viewportRange = textView?.textViewportLayoutController?.viewportRange else {
             return
         }
 
         let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
         let rangesInViewport = textRanges.compactMap { $0.intersection(viewportRange) }
 
-        let color: NSColor
-        if textView.windowIsKey && textView.isFirstResponder {
-            color = NSColor.selectedTextBackgroundColor
-        } else {
-            color = NSColor.unemphasizedSelectedTextBackgroundColor
-        }
-
+        // TODO: use layer.sublayers.difference? That could be fun.
         layer.sublayers = nil
 
         for textRange in rangesInViewport {
             textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
                 let l = frameLayerMap[segmentFrame] ?? makeLayer(for: segmentFrame)
-                l.backgroundColor = color.cgColor
 
                 frameLayerMap[segmentFrame] = l
                 layer.addSublayer(l)
@@ -48,15 +42,30 @@ class SelectionLayoutManager: NSObject, CALayoutManager {
         }
     }
 
+    func display(_ layer: CALayer) {
+        guard let textView = textView else { return }
+
+        let color: NSColor
+        if textView.windowIsKey && textView.isFirstResponder {
+            color = NSColor.selectedTextBackgroundColor
+        } else {
+            color = NSColor.unemphasizedSelectedTextBackgroundColor
+        }
+
+        layer.backgroundColor = color.cgColor
+    }
+
     func makeLayer(for rect: CGRect) -> CALayer {
-        let l = NonAnimatingLayer()
+        let layer = NonAnimatingLayer()
+        layer.needsDisplayOnBoundsChange = true
 
-        l.anchorPoint = CGPoint(x: 0, y: 0)
+        layer.delegate = self
 
+        layer.anchorPoint = CGPoint(x: 0, y: 0)
         let pixelAlignedFrame = NSIntegralRectWithOptions(rect, .alignAllEdgesNearest)
-        l.bounds = CGRect(origin: .zero, size: pixelAlignedFrame.size)
-        l.position = pixelAlignedFrame.origin
+        layer.bounds = CGRect(origin: .zero, size: pixelAlignedFrame.size)
+        layer.position = pixelAlignedFrame.origin
 
-        return l
+        return layer
     }
 }
