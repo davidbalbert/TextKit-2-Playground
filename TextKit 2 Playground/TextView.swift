@@ -169,13 +169,13 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         if selectionLayer.superlayer == nil {
             selectionLayer.layoutManager = selectionLayoutManager
 
-            selectionLayer.anchorPoint = CGPoint(x: 0, y: 0)
+            selectionLayer.anchorPoint = .zero
             selectionLayer.name = "Selections"
             layer.addSublayer(selectionLayer)
         }
 
         if contentLayer.superlayer == nil {
-            contentLayer.anchorPoint = CGPoint(x: 0, y: 0)
+            contentLayer.anchorPoint = .zero
             contentLayer.name = "Content"
             layer.addSublayer(contentLayer)
         }
@@ -183,7 +183,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         if insertionPointLayer.superlayer == nil {
             insertionPointLayer.layoutManager = insertionPointLayoutManager
 
-            insertionPointLayer.anchorPoint = CGPoint(x: 0, y: 0)
+            insertionPointLayer.anchorPoint = .zero
             insertionPointLayer.name = "Insertion points"
             layer.addSublayer(insertionPointLayer)
         }
