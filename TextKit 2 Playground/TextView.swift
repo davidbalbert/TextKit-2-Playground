@@ -191,7 +191,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         insertionPointLayer.bounds = layer.bounds
 
         textLayer.layoutSublayers()
-        // TODO: this next line seems like it would be necessary, but it's not. Why?
         selectionLayer.layoutSublayers()
         insertionPointLayer.layoutSublayers()
     }
