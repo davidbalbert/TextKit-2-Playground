@@ -205,14 +205,14 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         0.5
     }
 
-    var shouldBlinkInsertionPoint: Bool {
-        isEditable && insertionPointTextRanges.count > 0 && isFirstResponder && windowIsKey && superview != nil
+    var shouldDrawInsertionPoint: Bool {
+        isEditable && isFirstResponder && windowIsKey && superview != nil
     }
 
     func updateInsertionPointTimer() {
         insertionPointTimer?.invalidate()
 
-        if shouldBlinkInsertionPoint {
+        if shouldDrawInsertionPoint {
             insertionPointLayer.isHidden = false
 
             insertionPointTimer = Timer.scheduledTimer(withTimeInterval: insertionPointBlinkInterval, repeats: true) { [weak self] timer in
@@ -235,7 +235,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         let textRange = NSTextRange(location: textLayoutManager.documentRange.location)
         textLayoutManager.textSelections = [NSTextSelection(range: textRange, affinity: .downstream, granularity: .character)]
-
     }
 
     override func setFrameSize(_ newSize: NSSize) {
