@@ -153,13 +153,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     var contentLayer: CALayer = NonAnimatingLayer()
     var insertionPointLayer: CALayer = NonAnimatingLayer()
 
-    lazy var selectionLayoutManager = {
-        SelectionLayoutManager(textView: self)
-    }()
-
-    lazy var insertionPointLayoutManager = {
-        InsertionPointLayoutManager(textView: self)
-    }()
+    lazy var selectionLayoutManager = SelectionLayoutManager(textView: self)
+    lazy var insertionPointLayoutManager = InsertionPointLayoutManager(textView: self)
 
     override func layout() {
         super.layout()
