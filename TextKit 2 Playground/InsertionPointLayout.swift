@@ -19,23 +19,15 @@ class InsertionPointLayout: NSObject, CALayoutManager, CALayerDelegate {
     func layoutSublayers(of layer: CALayer) {
         guard isEqual(to: layer.layoutManager) else { return }
 
-        guard let textLayoutManager = textView?.textLayoutManager, let viewportRange = textView?.textViewportLayoutController?.viewportRange, let insertionPointTextRanges = textView?.insertionPointTextRanges else {
-            return
-        }
-
-        let rangesInViewport = insertionPointTextRanges.compactMap { $0.intersection(viewportRange) }
+        guard let textView = textView else { return }
 
         // TODO: use layer.sublayers.difference? That could be fun.
         layer.sublayers = nil
 
-        for textRange in rangesInViewport {
-            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
-                let l = frameLayerMap[segmentFrame] ?? makeLayer(for: segmentFrame)
-                frameLayerMap[segmentFrame] = l
-                layer.addSublayer(l)
-
-                return true
-            }
+        textView.enumerateInsertionPointFramesInViewport { insertionPointFrame in
+            let l = frameLayerMap[insertionPointFrame] ?? makeLayer(for: insertionPointFrame)
+            frameLayerMap[insertionPointFrame] = l
+            layer.addSublayer(l)
         }
     }
 
@@ -50,12 +42,8 @@ class InsertionPointLayout: NSObject, CALayoutManager, CALayerDelegate {
         layer.delegate = self
 
         layer.anchorPoint = .zero
-
-        var insertionPointFrame = NSIntegralRectWithOptions(rect, .alignAllEdgesNearest)
-        insertionPointFrame.size.width = 1
-
-        layer.bounds = CGRect(origin: .zero, size: insertionPointFrame.size)
-        layer.position = insertionPointFrame.origin
+        layer.bounds = CGRect(origin: .zero, size: rect.size)
+        layer.position = rect.origin
 
         return layer
     }

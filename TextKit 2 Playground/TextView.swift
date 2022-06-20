@@ -198,27 +198,11 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         // Noop (for now?). Its presence tells AppKit that we want to have our own backing layer.
     }
 
-    func selectionNeedsDisplay() {
-        guard let sublayers = selectionLayer.sublayers else { return }
-
-        for layer in sublayers {
-            layer.setNeedsDisplay()
-        }
-    }
-
     private var insertionPointTimer: Timer?
 
     // TODO: split into an onInterval and offInterval and read NSTextInsertionPointBlinkPeriodOn and NSTextInsertionPointBlinkPeriodOff from defaults
     private var insertionPointBlinkInterval: TimeInterval {
         0.5
-    }
-
-    var insertionPointTextRanges: [NSTextRange] {
-        guard let textLayoutManager = textLayoutManager else {
-            return []
-        }
-
-        return textLayoutManager.textSelections.flatMap(\.textRanges).filter { $0.isEmpty }
     }
 
     var shouldBlinkInsertionPoint: Bool {

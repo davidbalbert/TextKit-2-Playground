@@ -230,5 +230,70 @@ extension TextView {
             textSelection.textRanges.allSatisfy { $0.isEmpty }
         }
     }
+
+    func selectionNeedsDisplay() {
+        guard let sublayers = selectionLayer.sublayers else { return }
+
+        for layer in sublayers {
+            layer.setNeedsDisplay()
+        }
+    }
+
+    var textSelections: [NSTextSelection] {
+        guard let textLayoutManager = textLayoutManager else {
+            return []
+        }
+
+        return textLayoutManager.textSelections
+    }
+
+    var textSelectionColor: NSColor {
+        if windowIsKey && isFirstResponder {
+            return NSColor.selectedTextBackgroundColor
+        } else {
+            return NSColor.unemphasizedSelectedTextBackgroundColor
+        }
+    }
+
+    var selectionTextRanges: [NSTextRange] {
+        return textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
+    }
+
+    func enumerateSelectionFramesInViewport(using block: (CGRect) -> Void) {
+        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
+            return
+        }
+
+        let rangesInViewport = selectionTextRanges.compactMap { $0.intersection(viewportRange) }
+
+        for textRange in rangesInViewport {
+            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection) { _, segmentFrame, _, _ in
+                block(segmentFrame.pixelAligned)
+                return true
+            }
+        }
+    }
+
+    var insertionPointTextRanges: [NSTextRange] {
+        return textSelections.flatMap(\.textRanges).filter { $0.isEmpty }
+    }
+
+    func enumerateInsertionPointFramesInViewport(using block: (CGRect) -> Void) {
+        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
+            return
+        }
+
+        let rangesInViewport = insertionPointTextRanges.compactMap { $0.intersection(viewportRange) }
+
+        for textRange in rangesInViewport {
+            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection) { _, segmentFrame, _, _ in
+                var insertionPointFrame = segmentFrame.pixelAligned
+                insertionPointFrame.size.width = 1
+
+                block(insertionPointFrame)
+                return true
+            }
+        }
+    }
 }
 

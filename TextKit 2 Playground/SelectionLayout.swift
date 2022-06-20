@@ -20,39 +20,22 @@ class SelectionLayout: NSObject, CALayoutManager, CALayerDelegate {
         // Only layoutSublayers for the textView.selectionLayer
         guard isEqual(to: layer.layoutManager) else { return }
 
-        guard let textLayoutManager = textView?.textLayoutManager, let viewportRange = textView?.textViewportLayoutController?.viewportRange else {
-            return
-        }
-
-        let textRanges = textLayoutManager.textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
-        let rangesInViewport = textRanges.compactMap { $0.intersection(viewportRange) }
+        guard let textView = textView else { return }
 
         // TODO: use layer.sublayers.difference? That could be fun.
         layer.sublayers = nil
 
-        for textRange in rangesInViewport {
-            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
-                let l = frameLayerMap[segmentFrame] ?? makeLayer(for: segmentFrame)
-
-                frameLayerMap[segmentFrame] = l
-                layer.addSublayer(l)
-
-                return true
-            }
+        textView.enumerateSelectionFramesInViewport { selectionFrame in
+            let l = frameLayerMap[selectionFrame] ?? makeLayer(for: selectionFrame)
+            frameLayerMap[selectionFrame] = l
+            layer.addSublayer(l)
         }
     }
 
     func display(_ layer: CALayer) {
         guard let textView = textView else { return }
 
-        let color: NSColor
-        if textView.windowIsKey && textView.isFirstResponder {
-            color = NSColor.selectedTextBackgroundColor
-        } else {
-            color = NSColor.unemphasizedSelectedTextBackgroundColor
-        }
-
-        layer.backgroundColor = color.cgColor
+        layer.backgroundColor = textView.textSelectionColor.cgColor
     }
 
     func makeLayer(for rect: CGRect) -> CALayer {
@@ -62,9 +45,8 @@ class SelectionLayout: NSObject, CALayoutManager, CALayerDelegate {
         layer.delegate = self
 
         layer.anchorPoint = .zero
-        let pixelAlignedFrame = NSIntegralRectWithOptions(rect, .alignAllEdgesNearest)
-        layer.bounds = CGRect(origin: .zero, size: pixelAlignedFrame.size)
-        layer.position = pixelAlignedFrame.origin
+        layer.bounds = CGRect(origin: .zero, size: rect.size)
+        layer.position = rect.origin
 
         return layer
     }
