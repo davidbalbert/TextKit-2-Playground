@@ -61,7 +61,7 @@ class SelectionLayoutManager: NSObject, CALayoutManager, CALayerDelegate {
 
         layer.delegate = self
 
-        layer.anchorPoint = CGPoint(x: 0, y: 0)
+        layer.anchorPoint = .zero
         let pixelAlignedFrame = NSIntegralRectWithOptions(rect, .alignAllEdgesNearest)
         layer.bounds = CGRect(origin: .zero, size: pixelAlignedFrame.size)
         layer.position = pixelAlignedFrame.origin
