@@ -40,13 +40,14 @@ class SelectionLayout: NSObject, CALayoutManager, CALayerDelegate {
 
     func makeLayer(for rect: CGRect) -> CALayer {
         let layer = NonAnimatingLayer()
-        layer.needsDisplayOnBoundsChange = true
 
         layer.delegate = self
 
         layer.anchorPoint = .zero
         layer.bounds = CGRect(origin: .zero, size: rect.size)
         layer.position = rect.origin
+
+        layer.setNeedsDisplay()
 
         return layer
     }
