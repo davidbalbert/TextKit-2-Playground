@@ -38,15 +38,46 @@ class TextLayout: NSObject, CALayoutManager, CALayerDelegate {
         }
 
         let layer = fragmentLayerMap.object(forKey: textLayoutFragment) ?? makeLayer(for: textLayoutFragment, contentsScale: textView.window?.backingScaleFactor ?? 1.0)
-        (layer as! TextLayoutFragmentLayer).updateGeometry()
+
+        // The textLayoutFragment has a bounds and a frame, like a view, but the bounds and the
+        // frame are different sizes. The layoutFragmentFrame is generally smaller and inset within
+        // the renderingSurfaceBounds, but not always (blank lines have bounds that are smaller
+        // than the frames).
+        //
+        // We want our layer's size to be set by the renderingSurfaceBounds (the actual area that
+        // the layout fragment needs to draw into), and we need to set our position by the layout
+        // fragment frame.
+        //
+        // The bounds origin seems to never be at zero, which means (conceptually) that the
+        // layoutFragmentFrame is translated within the bounds. In order to use the frame's
+        // origin as our position, we set our layer's anchor to be the the frame's origin
+        // in the (slightly translated) coordinate space of the frame.
+
+        let bounds = textLayoutFragment.renderingSurfaceBounds
+        layer.anchorPoint = CGPoint(x: -bounds.origin.x/bounds.width, y: -bounds.origin.y/bounds.height)
+        layer.bounds = bounds
+        layer.position = textLayoutFragment.layoutFragmentFrame.origin
 
         fragmentLayerMap.setObject(layer, forKey: textLayoutFragment)
         layerBeingLayedOut.addSublayer(layer)
     }
 
+    func draw(_ layer: CALayer, in ctx: CGContext) {
+        guard let textLayoutFragment = layer.value(forKey: "textLayoutFragment") as? NSTextLayoutFragment else {
+            return
+        }
+
+        textLayoutFragment.draw(at: .zero, in: ctx)
+    }
+
     func makeLayer(for textLayoutFragment: NSTextLayoutFragment, contentsScale: CGFloat) -> CALayer {
-        let layer = TextLayoutFragmentLayer(textLayoutFragment: textLayoutFragment)
+        let layer = NonAnimatingLayer()
+        layer.needsDisplayOnBoundsChange = true
+        layer.setValue(textLayoutFragment, forKey: "textLayoutFragment")
         layer.contentsScale = contentsScale
+
+        layer.delegate = self
+
         return layer
     }
 }

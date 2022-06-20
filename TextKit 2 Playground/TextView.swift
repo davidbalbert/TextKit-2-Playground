@@ -84,16 +84,18 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         true
     }
 
-    @Invalidating(.layout) public var isSelectable: Bool = true {
+    public var isSelectable: Bool = true {
         didSet {
             if !isSelectable {
                 isEditable = false
                 textLayoutManager?.textSelections = []
             }
+
+            selectionLayer.setNeedsLayout()
         }
     }
 
-    @Invalidating(.layout) public var isEditable: Bool = true {
+    public var isEditable: Bool = true {
         didSet {
             if isEditable {
                 isSelectable = true
@@ -101,6 +103,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
             createInsertionPointIfNecessary()
             updateInsertionPointTimer()
+            insertionPointLayer.setNeedsLayout()
         }
     }
 
@@ -142,12 +145,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
     override func prepareContent(in rect: NSRect) {
         needsLayout = true
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
         super.prepareContent(in: rect)
     }
-
-    var fragmentLayerMap: NSMapTable<NSTextLayoutFragment, TextLayoutFragmentLayer> = .weakToWeakObjects()
 
     internal var selectionLayer: CALayer = NonAnimatingLayer()
     internal var textLayer: CALayer = NonAnimatingLayer()
@@ -199,6 +198,10 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
     override func updateLayer() {
         // Noop (for now?). Its presence tells AppKit that we want to have our own backing layer.
+    }
+
+    func layoutViewport() {
+        textViewportLayoutController?.layoutViewport()
     }
 
     private var insertionPointTimer: Timer?
@@ -293,10 +296,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     // MARK: - NSTextViewportLayoutControllerDelegate
-
-    func layoutViewport() {
-        textViewportLayoutController?.layoutViewport()
-    }
 
     func viewportBounds(for textViewportLayoutController: NSTextViewportLayoutController) -> CGRect {
         var viewportBounds: CGRect
