@@ -27,6 +27,7 @@
 		63921D81285F776D00961F8E /* CGPoint+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D80285F776D00961F8E /* CGPoint+Hashable.swift */; };
 		63921D83285F778100961F8E /* CGSize+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D82285F778100961F8E /* CGSize+Hashable.swift */; };
 		63921D85285F778D00961F8E /* CGRect+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D84285F778D00961F8E /* CGRect+Extensions.swift */; };
+		63921D892860C0C600961F8E /* TextLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D882860C0C600961F8E /* TextLayout.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +72,7 @@
 		63921D80285F776D00961F8E /* CGPoint+Hashable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGPoint+Hashable.swift"; sourceTree = "<group>"; };
 		63921D82285F778100961F8E /* CGSize+Hashable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGSize+Hashable.swift"; sourceTree = "<group>"; };
 		63921D84285F778D00961F8E /* CGRect+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGRect+Extensions.swift"; sourceTree = "<group>"; };
+		63921D882860C0C600961F8E /* TextLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLayout.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +133,7 @@
 				63921D78285E7FAF00961F8E /* SelectionLayout.swift */,
 				63921D76285E3C4B00961F8E /* TextLayoutFragmentLayer.swift */,
 				638ACBBF282BD2CC0012D282 /* TextView.swift */,
+				63921D882860C0C600961F8E /* TextLayout.swift */,
 				630A735F28553104007C0522 /* TextView+TextInput.swift */,
 				630A736128563BE1007C0522 /* TextView+TextSelection.swift */,
 				63921D7C285EB98A00961F8E /* WeakDictionary.swift */,
@@ -301,6 +304,7 @@
 				63921D85285F778D00961F8E /* CGRect+Extensions.swift in Sources */,
 				63921D79285E7FAF00961F8E /* SelectionLayout.swift in Sources */,
 				63921D77285E3C4B00961F8E /* TextLayoutFragmentLayer.swift in Sources */,
+				63921D892860C0C600961F8E /* TextLayout.swift in Sources */,
 				63921D7B285E88FE00961F8E /* InsertionPointLayout.swift in Sources */,
 				630A736028553104007C0522 /* TextView+TextInput.swift in Sources */,
 				638ACBC0282BD2CC0012D282 /* TextView.swift in Sources */,

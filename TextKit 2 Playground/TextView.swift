@@ -154,6 +154,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     internal var insertionPointLayer: CALayer = NonAnimatingLayer()
 
     private lazy var selectionLayout = SelectionLayout(textView: self)
+    private lazy var textLayout = TextLayout(textView: self)
     private lazy var insertionPointLayout = InsertionPointLayout(textView: self)
 
     override func layout() {
@@ -170,6 +171,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         }
 
         if textLayer.superlayer == nil {
+            textLayer.layoutManager = textLayout
+
             textLayer.anchorPoint = .zero
             textLayer.name = "Text"
             layer.addSublayer(textLayer)
@@ -188,7 +191,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         textLayer.bounds = layer.bounds
         insertionPointLayer.bounds = layer.bounds
 
-        textViewportLayoutController?.layoutViewport()
+        textLayer.layoutSublayers()
         // TODO: this next line seems like it would be necessary, but it's not. Why?
         selectionLayer.layoutSublayers()
         insertionPointLayer.layoutSublayers()
@@ -291,6 +294,10 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
     // MARK: - NSTextViewportLayoutControllerDelegate
 
+    func layoutViewport() {
+        textViewportLayoutController?.layoutViewport()
+    }
+
     func viewportBounds(for textViewportLayoutController: NSTextViewportLayoutController) -> CGRect {
         var viewportBounds: CGRect
         if preparedContentRect.intersects(visibleRect) {
@@ -307,30 +314,11 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     func textViewportLayoutControllerWillLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
-        textLayer.sublayers = nil
+        textLayout.textView(self, textViewportLayoutControllerWillLayout: textViewportLayoutController)
     }
 
     func textViewportLayoutController(_ textViewportLayoutController: NSTextViewportLayoutController, configureRenderingSurfaceFor textLayoutFragment: NSTextLayoutFragment) {
-        // The textLayoutFragment has a bounds and a frame, like a view, but the bounds and the
-        // frame are different sizes. The layoutFragmentFrame is generally smaller and inset within
-        // the renderingSurfaceBounds, but not always (blank lines have bounds that are smaller
-        // than the frames).
-        //
-        // We want our layer's size to be set by the renderingSurfaceBounds (the actual area that
-        // the layout fragment needs to draw into), and we need to set our position by the layout
-        // fragment frame.
-        //
-        // The bounds origin seems to never be at zero, which means (conceptually) that the
-        // layoutFragmentFrame is translated within the bounds. In order to use the frame's
-        // origin as our position, we set our layer's anchor to be the the frame's origin
-        // in the (slightly translated) coordinate space of the frame.
-
-        let layer = fragmentLayerMap.object(forKey: textLayoutFragment) ?? TextLayoutFragmentLayer(textLayoutFragment: textLayoutFragment)
-        layer.contentsScale = window?.backingScaleFactor ?? 1.0
-        layer.updateGeometry()
-
-        fragmentLayerMap.setObject(layer, forKey: textLayoutFragment)
-        textLayer.addSublayer(layer)
+        textLayout.textView(self, textViewportLayoutController: textViewportLayoutController, configureRenderingSurfaceFor: textLayoutFragment)
     }
 
     func textViewportLayoutControllerDidLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
