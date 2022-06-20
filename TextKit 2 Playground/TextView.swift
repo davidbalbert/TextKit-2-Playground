@@ -149,12 +149,12 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
     var fragmentLayerMap: NSMapTable<NSTextLayoutFragment, TextLayoutFragmentLayer> = .weakToWeakObjects()
 
-    var selectionLayer: CALayer = NonAnimatingLayer()
-    var contentLayer: CALayer = NonAnimatingLayer()
-    var insertionPointLayer: CALayer = NonAnimatingLayer()
+    internal var selectionLayer: CALayer = NonAnimatingLayer()
+    internal var textLayer: CALayer = NonAnimatingLayer()
+    internal var insertionPointLayer: CALayer = NonAnimatingLayer()
 
-    lazy var selectionLayoutManager = SelectionLayoutManager(textView: self)
-    lazy var insertionPointLayoutManager = InsertionPointLayoutManager(textView: self)
+    private lazy var selectionLayout = SelectionLayout(textView: self)
+    private lazy var insertionPointLayout = InsertionPointLayout(textView: self)
 
     override func layout() {
         super.layout()
@@ -162,37 +162,40 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         guard let layer = layer else { return }
 
         if selectionLayer.superlayer == nil {
-            selectionLayer.layoutManager = selectionLayoutManager
+            selectionLayer.layoutManager = selectionLayout
 
             selectionLayer.anchorPoint = .zero
             selectionLayer.name = "Selections"
             layer.addSublayer(selectionLayer)
         }
 
-        if contentLayer.superlayer == nil {
-            contentLayer.anchorPoint = .zero
-            contentLayer.name = "Content"
-            layer.addSublayer(contentLayer)
+        if textLayer.superlayer == nil {
+            textLayer.anchorPoint = .zero
+            textLayer.name = "Text"
+            layer.addSublayer(textLayer)
         }
 
         if insertionPointLayer.superlayer == nil {
-            insertionPointLayer.layoutManager = insertionPointLayoutManager
+            insertionPointLayer.layoutManager = insertionPointLayout
 
             insertionPointLayer.anchorPoint = .zero
             insertionPointLayer.name = "Insertion points"
             layer.addSublayer(insertionPointLayer)
         }
 
+        // TODO: I think we should be able to do this with an autoresize mask.
         selectionLayer.bounds = layer.bounds
-        contentLayer.bounds = layer.bounds
+        textLayer.bounds = layer.bounds
         insertionPointLayer.bounds = layer.bounds
 
         textViewportLayoutController?.layoutViewport()
+        // TODO: this next line seems like it would be necessary, but it's not. Why?
+        selectionLayer.layoutSublayers()
         insertionPointLayer.layoutSublayers()
     }
 
     override func updateLayer() {
-        // Noop (for now?). It's presence tells AppKit that we want to have our own backing layer.
+        // Noop (for now?). Its presence tells AppKit that we want to have our own backing layer.
     }
 
     func selectionNeedsDisplay() {
@@ -321,7 +324,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     func textViewportLayoutControllerWillLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
-        contentLayer.sublayers = nil
+        textLayer.sublayers = nil
     }
 
     func textViewportLayoutController(_ textViewportLayoutController: NSTextViewportLayoutController, configureRenderingSurfaceFor textLayoutFragment: NSTextLayoutFragment) {
@@ -344,7 +347,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         layer.updateGeometry()
 
         fragmentLayerMap.setObject(layer, forKey: textLayoutFragment)
-        contentLayer.addSublayer(layer)
+        textLayer.addSublayer(layer)
     }
 
     func textViewportLayoutControllerDidLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {

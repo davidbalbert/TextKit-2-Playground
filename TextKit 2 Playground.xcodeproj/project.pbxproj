@@ -20,8 +20,8 @@
 		638ACBC0282BD2CC0012D282 /* TextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638ACBBF282BD2CC0012D282 /* TextView.swift */; };
 		63921D75285E370000961F8E /* NonAnimatingLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D74285E370000961F8E /* NonAnimatingLayer.swift */; };
 		63921D77285E3C4B00961F8E /* TextLayoutFragmentLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D76285E3C4B00961F8E /* TextLayoutFragmentLayer.swift */; };
-		63921D79285E7FAF00961F8E /* SelectionLayoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D78285E7FAF00961F8E /* SelectionLayoutManager.swift */; };
-		63921D7B285E88FE00961F8E /* InsertionPointLayoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D7A285E88FE00961F8E /* InsertionPointLayoutManager.swift */; };
+		63921D79285E7FAF00961F8E /* SelectionLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D78285E7FAF00961F8E /* SelectionLayout.swift */; };
+		63921D7B285E88FE00961F8E /* InsertionPointLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D7A285E88FE00961F8E /* InsertionPointLayout.swift */; };
 		63921D7D285EB98A00961F8E /* WeakDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D7C285EB98A00961F8E /* WeakDictionary.swift */; };
 		63921D7F285F712500961F8E /* WeakDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D7E285F712500961F8E /* WeakDictionaryTests.swift */; };
 		63921D81285F776D00961F8E /* CGPoint+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D80285F776D00961F8E /* CGPoint+Hashable.swift */; };
@@ -64,8 +64,8 @@
 		638ACBBF282BD2CC0012D282 /* TextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextView.swift; sourceTree = "<group>"; };
 		63921D74285E370000961F8E /* NonAnimatingLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonAnimatingLayer.swift; sourceTree = "<group>"; };
 		63921D76285E3C4B00961F8E /* TextLayoutFragmentLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLayoutFragmentLayer.swift; sourceTree = "<group>"; };
-		63921D78285E7FAF00961F8E /* SelectionLayoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionLayoutManager.swift; sourceTree = "<group>"; };
-		63921D7A285E88FE00961F8E /* InsertionPointLayoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsertionPointLayoutManager.swift; sourceTree = "<group>"; };
+		63921D78285E7FAF00961F8E /* SelectionLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionLayout.swift; sourceTree = "<group>"; };
+		63921D7A285E88FE00961F8E /* InsertionPointLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsertionPointLayout.swift; sourceTree = "<group>"; };
 		63921D7C285EB98A00961F8E /* WeakDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeakDictionary.swift; sourceTree = "<group>"; };
 		63921D7E285F712500961F8E /* WeakDictionaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeakDictionaryTests.swift; sourceTree = "<group>"; };
 		63921D80285F776D00961F8E /* CGPoint+Hashable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGPoint+Hashable.swift"; sourceTree = "<group>"; };
@@ -125,10 +125,10 @@
 				63921D80285F776D00961F8E /* CGPoint+Hashable.swift */,
 				63921D84285F778D00961F8E /* CGRect+Hashable.swift */,
 				63921D82285F778100961F8E /* CGSize+Hashable.swift */,
-				63921D7A285E88FE00961F8E /* InsertionPointLayoutManager.swift */,
+				63921D7A285E88FE00961F8E /* InsertionPointLayout.swift */,
 				63921D74285E370000961F8E /* NonAnimatingLayer.swift */,
 				630A736328566BA9007C0522 /* NSRange+Extensions.swift */,
-				63921D78285E7FAF00961F8E /* SelectionLayoutManager.swift */,
+				63921D78285E7FAF00961F8E /* SelectionLayout.swift */,
 				63921D76285E3C4B00961F8E /* TextLayoutFragmentLayer.swift */,
 				638ACBBF282BD2CC0012D282 /* TextView.swift */,
 				630A735F28553104007C0522 /* TextView+TextInput.swift */,
@@ -299,9 +299,9 @@
 				63921D75285E370000961F8E /* NonAnimatingLayer.swift in Sources */,
 				630A736428566BA9007C0522 /* NSRange+Extensions.swift in Sources */,
 				63921D85285F778D00961F8E /* CGRect+Hashable.swift in Sources */,
-				63921D79285E7FAF00961F8E /* SelectionLayoutManager.swift in Sources */,
+				63921D79285E7FAF00961F8E /* SelectionLayout.swift in Sources */,
 				63921D77285E3C4B00961F8E /* TextLayoutFragmentLayer.swift in Sources */,
-				63921D7B285E88FE00961F8E /* InsertionPointLayoutManager.swift in Sources */,
+				63921D7B285E88FE00961F8E /* InsertionPointLayout.swift in Sources */,
 				630A736028553104007C0522 /* TextView+TextInput.swift in Sources */,
 				638ACBC0282BD2CC0012D282 /* TextView.swift in Sources */,
 			);
