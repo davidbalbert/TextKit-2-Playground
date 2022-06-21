@@ -144,7 +144,10 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     override func prepareContent(in rect: NSRect) {
-        needsLayout = true
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
+
         super.prepareContent(in: rect)
     }
 
@@ -189,10 +192,6 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         selectionLayer.bounds = layer.bounds
         textLayer.bounds = layer.bounds
         insertionPointLayer.bounds = layer.bounds
-
-        textLayer.layoutSublayers()
-        selectionLayer.layoutSublayers()
-        insertionPointLayer.layoutSublayers()
     }
 
     override func updateLayer() {

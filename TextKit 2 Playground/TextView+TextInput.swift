@@ -82,7 +82,9 @@ extension TextView {
             textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
         }
 
-        needsLayout = true
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
         updateInsertionPointTimer()
     }
 }
