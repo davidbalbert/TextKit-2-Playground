@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class InsertionPointLayout: NSObject, CALayoutManager {
+class InsertionPointLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLayerContentScaleDelegate {
     weak var textView: TextView?
     var frameLayerMap: WeakDictionary<CGRect, CALayer> = WeakDictionary()
 
@@ -17,6 +17,8 @@ class InsertionPointLayout: NSObject, CALayoutManager {
     }
 
     func layoutSublayers(of layer: CALayer) {
+        guard isEqual(to: layer.layoutManager) else { return }
+
         guard let textView = textView else { return }
 
         // TODO: use layer.sublayers.difference? That could be fun.
@@ -36,7 +38,14 @@ class InsertionPointLayout: NSObject, CALayoutManager {
         layer.bounds = CGRect(origin: .zero, size: rect.size)
         layer.position = rect.origin
         layer.backgroundColor = NSColor.black.cgColor
+        layer.contentsScale = textView?.window?.backingScaleFactor ?? 1.0
+
+        layer.delegate = self
 
         return layer
+    }
+
+    func layer(_ layer: CALayer, shouldInheritContentsScale newScale: CGFloat, from window: NSWindow) -> Bool {
+        true
     }
 }

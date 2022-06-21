@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class TextLayout: NSObject, CALayoutManager, CALayerDelegate {
+class TextLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLayerContentScaleDelegate {
     weak var textView: TextView?
     var fragmentLayerMap: NSMapTable<NSTextLayoutFragment, CALayer> = .weakToWeakObjects()
 
@@ -37,7 +37,7 @@ class TextLayout: NSObject, CALayoutManager, CALayerDelegate {
             return
         }
 
-        let layer = fragmentLayerMap.object(forKey: textLayoutFragment) ?? makeLayer(for: textLayoutFragment, contentsScale: textView.window?.backingScaleFactor ?? 1.0)
+        let layer = fragmentLayerMap.object(forKey: textLayoutFragment) ?? makeLayer(for: textLayoutFragment)
 
         // The textLayoutFragment has a bounds and a frame, like a view, but the bounds and the
         // frame are different sizes. The layoutFragmentFrame is generally smaller and inset within
@@ -62,6 +62,17 @@ class TextLayout: NSObject, CALayoutManager, CALayerDelegate {
         layerBeingLayedOut.addSublayer(layer)
     }
 
+    func makeLayer(for textLayoutFragment: NSTextLayoutFragment) -> CALayer {
+        let layer = NonAnimatingLayer()
+        layer.needsDisplayOnBoundsChange = true
+        layer.setValue(textLayoutFragment, forKey: "textLayoutFragment")
+        layer.contentsScale = textView?.window?.backingScaleFactor ?? 1.0
+
+        layer.delegate = self
+
+        return layer
+    }
+
     func draw(_ layer: CALayer, in ctx: CGContext) {
         guard let textLayoutFragment = layer.value(forKey: "textLayoutFragment") as? NSTextLayoutFragment else {
             return
@@ -70,14 +81,7 @@ class TextLayout: NSObject, CALayoutManager, CALayerDelegate {
         textLayoutFragment.draw(at: .zero, in: ctx)
     }
 
-    func makeLayer(for textLayoutFragment: NSTextLayoutFragment, contentsScale: CGFloat) -> CALayer {
-        let layer = NonAnimatingLayer()
-        layer.needsDisplayOnBoundsChange = true
-        layer.setValue(textLayoutFragment, forKey: "textLayoutFragment")
-        layer.contentsScale = contentsScale
-
-        layer.delegate = self
-
-        return layer
+    func layer(_ layer: CALayer, shouldInheritContentsScale newScale: CGFloat, from window: NSWindow) -> Bool {
+        true
     }
 }

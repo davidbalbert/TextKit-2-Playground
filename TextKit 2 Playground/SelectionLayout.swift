@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class SelectionLayout: NSObject, CALayoutManager, CALayerDelegate {
+class SelectionLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLayerContentScaleDelegate {
     weak var textView: TextView?
     var frameLayerMap: WeakDictionary<CGRect, CALayer> = WeakDictionary()
 
@@ -32,23 +32,27 @@ class SelectionLayout: NSObject, CALayoutManager, CALayerDelegate {
         }
     }
 
+    func makeLayer(for rect: CGRect) -> CALayer {
+        let layer = NonAnimatingLayer()
+
+        layer.anchorPoint = .zero
+        layer.bounds = CGRect(origin: .zero, size: rect.size)
+        layer.position = rect.origin
+        layer.contentsScale = textView?.window?.backingScaleFactor ?? 1.0
+
+        layer.delegate = self
+        layer.setNeedsDisplay()
+
+        return layer
+    }
+
     func display(_ layer: CALayer) {
         guard let textView = textView else { return }
 
         layer.backgroundColor = textView.textSelectionColor.cgColor
     }
 
-    func makeLayer(for rect: CGRect) -> CALayer {
-        let layer = NonAnimatingLayer()
-
-        layer.delegate = self
-
-        layer.anchorPoint = .zero
-        layer.bounds = CGRect(origin: .zero, size: rect.size)
-        layer.position = rect.origin
-
-        layer.setNeedsDisplay()
-
-        return layer
+    func layer(_ layer: CALayer, shouldInheritContentsScale newScale: CGFloat, from window: NSWindow) -> Bool {
+        true
     }
 }
