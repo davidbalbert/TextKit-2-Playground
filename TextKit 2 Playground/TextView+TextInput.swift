@@ -50,7 +50,7 @@ extension TextView {
     func delete(direction: NSTextSelectionNavigation.Direction, destination: NSTextSelectionNavigation.Destination) {
         guard isEditable else { return }
 
-        guard let textContentStorage = textContentStorage, let textLayoutManager = textLayoutManager else {
+        guard let textLayoutManager = textLayoutManager else {
             return
         }
 
@@ -61,9 +61,25 @@ extension TextView {
                                                                      allowsDecomposition: false)
         }
 
+        replaceCharacters(in: deletionRanges, with: "")
+    }
+
+    override func insertNewline(_ sender: Any?) {
+        replaceCharacters(in: selectedTextRanges, with: "\n")
+    }
+
+    func replaceCharacters(in textRanges: [NSTextRange], with string: String) {
+        replaceCharacters(in: textRanges, with: NSAttributedString(string: string))
+    }
+
+    func replaceCharacters(in textRanges: [NSTextRange], with attributedString: NSAttributedString) {
+        guard let textContentStorage = textContentStorage else {
+            return
+        }
+
         textContentStorage.performEditingTransaction {
-            for textRange in deletionRanges {
-                replaceCharacters(in: textRange, with: "")
+            for textRange in textRanges {
+                replaceCharacters(in: textRange, with: attributedString)
             }
         }
     }
@@ -98,21 +114,13 @@ extension TextView: NSTextInputClient {
         // I want to know about it.
         assert(replacementRange.location == NSNotFound)
 
-        guard let textContentStorage = textContentStorage, let textSelections = textLayoutManager?.textSelections else {
-            return
-        }
-
-        textContentStorage.performEditingTransaction {
-            for textRange in textSelections.flatMap(\.textRanges) {
-                switch string {
-                case let attributedString as NSAttributedString:
-                    replaceCharacters(in: textRange, with: attributedString)
-                case let string as String:
-                    replaceCharacters(in: textRange, with: string)
-                default:
-                    continue
-                }
-            }
+        switch string {
+        case let attributedString as NSAttributedString:
+            replaceCharacters(in: selectedTextRanges, with: attributedString)
+        case let string as String:
+            replaceCharacters(in: selectedTextRanges, with: string)
+        default:
+            break
         }
     }
 

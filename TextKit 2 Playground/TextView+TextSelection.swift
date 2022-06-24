@@ -255,8 +255,12 @@ extension TextView {
         }
     }
 
-    var selectionTextRanges: [NSTextRange] {
-        return textSelections.flatMap(\.textRanges).filter { !$0.isEmpty }
+    var selectedTextRanges: [NSTextRange] {
+        textSelections.flatMap(\.textRanges)
+    }
+
+    var nonEmptySelectedTextRanges: [NSTextRange] {
+        selectedTextRanges.filter { !$0.isEmpty }
     }
 
     func enumerateSelectionFramesInViewport(using block: (CGRect) -> Void) {
@@ -264,7 +268,7 @@ extension TextView {
             return
         }
 
-        let rangesInViewport = selectionTextRanges.compactMap { $0.intersection(viewportRange) }
+        let rangesInViewport = nonEmptySelectedTextRanges.compactMap { $0.intersection(viewportRange) }
 
         for textRange in rangesInViewport {
             textLayoutManager.enumerateTextSegments(in: textRange, type: .selection) { _, segmentFrame, _, _ in
@@ -275,7 +279,7 @@ extension TextView {
     }
 
     var insertionPointTextRanges: [NSTextRange] {
-        return textSelections.flatMap(\.textRanges).filter { $0.isEmpty }
+        selectedTextRanges.filter { $0.isEmpty }
     }
 
     func enumerateInsertionPointFramesInViewport(using block: (CGRect) -> Void) {
