@@ -11,6 +11,8 @@ extension TextView {
     override func keyDown(with event: NSEvent) {
         guard isEditable else { return }
 
+        NSCursor.setHiddenUntilMouseMoves(true)
+
         // TODO: should I use interpretKeyEvents here instead?
         inputContext?.handleEvent(event)
     }
