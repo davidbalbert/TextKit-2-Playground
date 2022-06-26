@@ -393,9 +393,11 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         case #selector(selectAll(_:)):
             return isSelectable
         case #selector(copy(_:)):
-            return hasSelectedText
-        case #selector(cut(_:)), #selector(paste(_:)):
-            return false
+            return isSelectable && hasSelectedText
+        case #selector(cut(_:)):
+            return isEditable && hasSelectedText
+        case #selector(paste(_:)):
+            return isEditable && NSPasteboard.general.canReadObject(forClasses: pastableTypes)
         default:
             return true
         }
@@ -412,31 +414,21 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     private var hasSelectedText: Bool {
-        guard let textLayoutManager = textLayoutManager else {
-            return false
-        }
-
-        for textSelection in textLayoutManager.textSelections {
-            for textRange in textSelection.textRanges {
-                if !textRange.isEmpty {
-                    return true
-                }
-            }
-        }
-
-        return false
+        nonEmptySelectedTextRanges.count > 0
     }
 
     @objc func cut(_ sender: Any) {
+        copy(sender)
+
+        replaceCharacters(in: nonEmptySelectedTextRanges, with: "")
     }
 
     @objc func copy(_ sender: Any) {
-        guard let textLayoutManager = textLayoutManager, let textContentStorage = textContentStorage, let textStorage = textStorage else {
+        guard let textContentStorage = textContentStorage, let textStorage = textStorage else {
             return
         }
 
-        let textRanges = textLayoutManager.textSelections.flatMap { $0.textRanges }.filter { !$0.isEmpty }
-        let nsRanges = textRanges.compactMap { NSRange($0, in: textContentStorage) }
+        let nsRanges = nonEmptySelectedTextRanges.compactMap { NSRange($0, in: textContentStorage) }
         let attributedStrings = nsRanges.map { textStorage.attributedSubstring(from: $0) }
 
         let pasteboard = NSPasteboard.general
@@ -444,7 +436,28 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         pasteboard.writeObjects(attributedStrings)
     }
 
+    private var pastableTypes: [AnyClass] = [NSAttributedString.self, NSString.self]
+
     @objc func paste(_ sender: Any) {
+        guard let objects = NSPasteboard.general.readObjects(forClasses: pastableTypes) else { return }
+
+        switch objects.first {
+        case let attributedString as NSAttributedString:
+            // TODO: Actually handle attributed strings with background color correctly.
+            // NSTextLayoutFragment.draw(at:in:), draws the text background color directly
+            // into each CALayer. Because the text layers are drawn above the text selection layers,
+            // a string with a background color will hide the text selection.
+            //
+            // A real solution to this problem might be to implement NSTextContentStorageDelegate
+            // and use textContentStorage(_:textParagraphWith:) to always return NSTextParagraphs
+            // without background color. Then we could render the background colors in CALayers that
+            // are behind the text selection layers.
+            replaceCharacters(in: selectedTextRanges, with: attributedString.withoutBackgroundColor)
+        case let string as String:
+            replaceCharacters(in: selectedTextRanges, with: string)
+        default:
+            break
+        }
     }
 
     @objc override func selectAll(_ sender: Any?) {

@@ -239,20 +239,20 @@ extension TextView {
         }
     }
 
-    var textSelections: [NSTextSelection] {
-        guard let textLayoutManager = textLayoutManager else {
-            return []
-        }
-
-        return textLayoutManager.textSelections
-    }
-
     var textSelectionColor: NSColor {
         if windowIsKey && isFirstResponder {
             return NSColor.selectedTextBackgroundColor
         } else {
             return NSColor.unemphasizedSelectedTextBackgroundColor
         }
+    }
+
+    var textSelections: [NSTextSelection] {
+        guard let textLayoutManager = textLayoutManager else {
+            return []
+        }
+
+        return textLayoutManager.textSelections
     }
 
     var selectedTextRanges: [NSTextRange] {

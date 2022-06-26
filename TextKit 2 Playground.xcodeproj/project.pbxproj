@@ -11,6 +11,7 @@
 		630A736228563BE1007C0522 /* TextView+TextSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630A736128563BE1007C0522 /* TextView+TextSelection.swift */; };
 		630A736428566BA9007C0522 /* NSRange+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630A736328566BA9007C0522 /* NSRange+Extensions.swift */; };
 		63371574284165FE000CC61F /* Moby Dick.txt in Resources */ = {isa = PBXBuildFile; fileRef = 63371573284165FE000CC61F /* Moby Dick.txt */; };
+		63558151286912A000C8F14B /* NSAttributedString+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */; };
 		638ACB97282BD26E0012D282 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638ACB96282BD26E0012D282 /* AppDelegate.swift */; };
 		638ACB99282BD26F0012D282 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 638ACB98282BD26F0012D282 /* Assets.xcassets */; };
 		638ACB9C282BD26F0012D282 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 638ACB9A282BD26F0012D282 /* MainMenu.xib */; };
@@ -51,6 +52,7 @@
 		630A736128563BE1007C0522 /* TextView+TextSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextView+TextSelection.swift"; sourceTree = "<group>"; };
 		630A736328566BA9007C0522 /* NSRange+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSRange+Extensions.swift"; sourceTree = "<group>"; };
 		63371573284165FE000CC61F /* Moby Dick.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Moby Dick.txt"; sourceTree = "<group>"; };
+		63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSAttributedString+Extensions.swift"; sourceTree = "<group>"; };
 		638ACB93282BD26E0012D282 /* TextKit 2 Playground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TextKit 2 Playground.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		638ACB96282BD26E0012D282 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		638ACB98282BD26F0012D282 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -128,6 +130,7 @@
 				63921D7A285E88FE00961F8E /* InsertionPointLayout.swift */,
 				63921D74285E370000961F8E /* NonAnimatingLayer.swift */,
 				630A736328566BA9007C0522 /* NSRange+Extensions.swift */,
+				63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */,
 				63921D78285E7FAF00961F8E /* SelectionLayout.swift */,
 				638ACBBF282BD2CC0012D282 /* TextView.swift */,
 				63921D882860C0C600961F8E /* TextLayout.swift */,
@@ -294,6 +297,7 @@
 				63921D81285F776D00961F8E /* CGPoint+Hashable.swift in Sources */,
 				638ACB97282BD26E0012D282 /* AppDelegate.swift in Sources */,
 				63921D7D285EB98A00961F8E /* WeakDictionary.swift in Sources */,
+				63558151286912A000C8F14B /* NSAttributedString+Extensions.swift in Sources */,
 				630A736228563BE1007C0522 /* TextView+TextSelection.swift in Sources */,
 				63921D83285F778100961F8E /* CGSize+Hashable.swift in Sources */,
 				63921D75285E370000961F8E /* NonAnimatingLayer.swift in Sources */,
