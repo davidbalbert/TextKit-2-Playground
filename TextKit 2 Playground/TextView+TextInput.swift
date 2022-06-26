@@ -67,42 +67,6 @@ extension TextView {
     override func insertNewline(_ sender: Any?) {
         replaceCharacters(in: selectedTextRanges, with: "\n")
     }
-
-    func replaceCharacters(in textRanges: [NSTextRange], with string: String) {
-        replaceCharacters(in: textRanges, with: NSAttributedString(string: string))
-    }
-
-    func replaceCharacters(in textRanges: [NSTextRange], with attributedString: NSAttributedString) {
-        guard let textContentStorage = textContentStorage else {
-            return
-        }
-
-        textContentStorage.performEditingTransaction {
-            for textRange in textRanges {
-                replaceCharacters(in: textRange, with: attributedString)
-            }
-        }
-    }
-
-    func replaceCharacters(in textRange: NSTextRange, with string: String) {
-        replaceCharacters(in: textRange, with: NSAttributedString(string: string))
-    }
-
-    // TODO: Maybe we should work with AttributedStrings instead?
-    func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString) {
-        guard let textContentStorage = textContentStorage, let textStorage = textStorage else {
-            return
-        }
-
-        textContentStorage.performEditingTransaction {
-            textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
-        }
-
-        textLayer.setNeedsLayout()
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
-        updateInsertionPointTimer()
-    }
 }
 
 extension TextView: NSTextInputClient {
