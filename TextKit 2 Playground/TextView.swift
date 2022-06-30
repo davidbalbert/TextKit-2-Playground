@@ -107,6 +107,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         }
     }
 
+    internal var markedRanges: [NSTextRange] = []
+
     convenience override init(frame frameRect: NSRect) {
         let textContainer = NSTextContainer()
         textContainer.widthTracksTextView = true // TODO: we don't actually consult this yet
@@ -422,6 +424,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         selectionLayer.setNeedsLayout()
         insertionPointLayer.setNeedsLayout()
         updateInsertionPointTimer()
+        inputContext?.invalidateCharacterCoordinates()
     }
 
     // MARK: - Pasteboard

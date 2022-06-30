@@ -9,12 +9,14 @@ import Cocoa
 
 extension TextView {
     override func keyDown(with event: NSEvent) {
-        guard isEditable else { return }
+        guard isEditable, let inputContext = inputContext else { return }
 
         NSCursor.setHiddenUntilMouseMoves(true)
 
-        // TODO: should I use interpretKeyEvents here instead?
-        inputContext?.handleEvent(event)
+        if !inputContext.handleEvent(event) {
+            // Not sure handleEvent returns false. Just want to know about it.
+            print("inputContext didn't handle this event:", event)
+        }
     }
 
     override func deleteBackward(_ sender: Any?) {
@@ -100,10 +102,22 @@ extension TextView: NSTextInputClient {
 
     func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
         print("setMarkedText", string, selectedRange, replacementRange)
+
+        guard let textContentStorage = textContentStorage else {
+            return
+        }
+
+        guard let textRange = NSTextRange(selectedRange, in: textContentStorage) else {
+            return
+        }
+
+        markedRanges = [textRange]
     }
 
     func unmarkText() {
         print("unmarkText")
+        markedRanges = []
+
     }
 
     func selectedRange() -> NSRange {
@@ -123,7 +137,8 @@ extension TextView: NSTextInputClient {
     }
 
     func hasMarkedText() -> Bool {
-        return false
+        print("hasMarkedText", !markedRanges.isEmpty)
+        return !markedRanges.isEmpty
     }
 
     func attributedSubstring(forProposedRange range: NSRange, actualRange: NSRangePointer?) -> NSAttributedString? {
@@ -133,7 +148,9 @@ extension TextView: NSTextInputClient {
     }
 
     func validAttributesForMarkedText() -> [NSAttributedString.Key] {
-        return []
+        print("validAttributesForMarkedText")
+        // Copied from NSTextView on macOS 12.4. Missing NSTextInsertionUndoable, which I can't any documentation for.
+        return [.font, .underlineStyle, .foregroundColor, .backgroundColor, .underlineColor, .markedClauseSegment, .languageIdentifier, .replacementIndex, .glyphInfo, .textAlternatives, .attachment]
     }
 
     func firstRect(forCharacterRange range: NSRange, actualRange: NSRangePointer?) -> NSRect {
