@@ -13,7 +13,8 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         let scrollView = NSScrollView()
         scrollView.hasVerticalScroller = true
-        // TODO: when we're drawing paragraphs into CALayers, we can disable drawsBackground. Our root layer will never move, and will draw its background.
+        // It would be nice to be able to set drawsBackground to false, but I need a way to
+        // deal with background drawing during elastic scroll
         // scrollView.drawsBackground = false
         scrollView.documentView = textView
 
@@ -33,6 +34,40 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
             // to do that here. Setting textLayoutManager invalidates display. draw(_:) calls
             // viewportLayoutController.layoutViewport(), which eventually calls updateFrameHeightIfNeeded().
             updateTextContainerSize()
+        }
+    }
+
+    var typingAttributes: [NSAttributedString.Key : Any] = [.foregroundColor: NSColor.black]
+
+    @Invalidating(.display) var backgroundColor: NSColor = .white {
+        didSet {
+            enclosingScrollView?.backgroundColor = backgroundColor
+
+            removeAttributeForDocumentRange(.backgroundColor)
+        }
+    }
+
+    @Invalidating(.textDisplay) var textColor: NSColor = .black {
+        didSet {
+            typingAttributes[.foregroundColor] = textColor
+
+            setAttributesForDocumentRange([.foregroundColor: textColor])
+        }
+    }
+
+    @Invalidating(.insertionPointDisplay) var insertionPointColor: NSColor = .black
+
+    @Invalidating(.layout) var isRichText: Bool = true {
+        didSet {
+            if isRichText {
+                backgroundColor = .white
+                textColor = .black
+                insertionPointColor = .black
+            } else {
+                backgroundColor = .textBackgroundColor
+                textColor = .textColor
+                insertionPointColor = .textColor
+            }
         }
     }
 
@@ -66,10 +101,12 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
             textContentStorage?.textStorage?.string ?? ""
         }
         set {
+            let attributedString = NSAttributedString(string: newValue, attributes: typingAttributes)
+
             if let textStorage = textContentStorage?.textStorage {
-                textStorage.mutableString.setString(newValue)
+                textStorage.setAttributedString(attributedString)
             } else {
-                textContentStorage?.textStorage = NSTextStorage(string: newValue)
+                textContentStorage?.textStorage = NSTextStorage(attributedString: attributedString)
             }
 
             createInsertionPointIfNecessary()
@@ -197,11 +234,41 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     override func updateLayer() {
-        // Noop (for now?). Its presence tells AppKit that we want to have our own backing layer.
+        layer?.backgroundColor = backgroundColor.cgColor
     }
 
     func layoutViewport() {
         textViewportLayoutController?.layoutViewport()
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        setSelectionNeedsDisplay()
+        setTextNeedsDisplay()
+        setInsertionPointNeedsDisplay()
+    }
+
+    func setSelectionNeedsDisplay() {
+        guard let sublayers = selectionLayer.sublayers else { return }
+
+        for layer in sublayers {
+            layer.setNeedsDisplay()
+        }
+    }
+
+    func setTextNeedsDisplay() {
+        guard let sublayers = textLayer.sublayers else { return }
+
+        for layer in sublayers {
+            layer.setNeedsDisplay()
+        }
+    }
+
+    func setInsertionPointNeedsDisplay() {
+        guard let sublayers = insertionPointLayer.sublayers else { return }
+
+        for layer in sublayers {
+            layer.setNeedsDisplay()
+        }
     }
 
     private var insertionPointTimer: Timer?
@@ -345,13 +412,13 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
     }
 
     override func becomeFirstResponder() -> Bool {
-        selectionNeedsDisplay()
+        setSelectionNeedsDisplay()
         updateInsertionPointTimer()
         return super.becomeFirstResponder()
     }
 
     override func resignFirstResponder() -> Bool {
-        selectionNeedsDisplay()
+        setSelectionNeedsDisplay()
         updateInsertionPointTimer()
         return super.resignFirstResponder()
     }
@@ -374,12 +441,12 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         guard let window = window else { return }
 
         didBecomeKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: nil) { [weak self] notification in
-            self?.selectionNeedsDisplay()
+            self?.setSelectionNeedsDisplay()
             self?.updateInsertionPointTimer()
         }
 
         didResignKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: nil) { [weak self] notification in
-            self?.selectionNeedsDisplay()
+            self?.setSelectionNeedsDisplay()
             self?.updateInsertionPointTimer()
         }
     }
@@ -425,6 +492,44 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         insertionPointLayer.setNeedsLayout()
         updateInsertionPointTimer()
         inputContext?.invalidateCharacterCoordinates()
+    }
+
+    // MARK: - Attribute manipulation
+
+    internal func setAttributesForDocumentRange(_ attrs: [NSAttributedString.Key : Any]?) {
+        guard let textContentStorage = textContentStorage else {
+            return
+        }
+
+        setAttributes(attrs, textRange: textContentStorage.documentRange)
+    }
+
+    internal func setAttributes(_ attrs: [NSAttributedString.Key : Any]?, textRange: NSTextRange) {
+        guard let textContentStorage = textContentStorage, let textStorage = textStorage else {
+            return
+        }
+
+        textContentStorage.performEditingTransaction {
+            textStorage.setAttributes(attrs, range: NSRange(textRange, in: textContentStorage))
+        }
+    }
+
+    internal func removeAttributeForDocumentRange(_ name: NSAttributedString.Key) {
+        guard let textContentStorage = textContentStorage else {
+            return
+        }
+
+        removeAttribute(name, textRange: textContentStorage.documentRange)
+    }
+
+    internal func removeAttribute(_ name: NSAttributedString.Key, textRange: NSTextRange) {
+        guard let textContentStorage = textContentStorage, let textStorage = textStorage else {
+            return
+        }
+
+        textContentStorage.performEditingTransaction {
+            textStorage.removeAttribute(name, range: NSRange(textRange, in: textContentStorage))
+        }
     }
 
     // MARK: - Pasteboard

@@ -231,14 +231,6 @@ extension TextView {
         }
     }
 
-    func selectionNeedsDisplay() {
-        guard let sublayers = selectionLayer.sublayers else { return }
-
-        for layer in sublayers {
-            layer.setNeedsDisplay()
-        }
-    }
-
     var textSelectionColor: NSColor {
         if windowIsKey && isFirstResponder {
             return NSColor.selectedTextBackgroundColor

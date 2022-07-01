@@ -49,7 +49,9 @@ class SelectionLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLayerCo
     func display(_ layer: CALayer) {
         guard let textView = textView else { return }
 
-        layer.backgroundColor = textView.textSelectionColor.cgColor
+        textView.effectiveAppearance.performAsCurrentDrawingAppearance {
+            layer.backgroundColor = textView.textSelectionColor.cgColor
+        }
     }
 
     func layer(_ layer: CALayer, shouldInheritContentsScale newScale: CGFloat, from window: NSWindow) -> Bool {

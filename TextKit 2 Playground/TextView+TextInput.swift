@@ -148,7 +148,7 @@ extension TextView: NSTextInputClient {
     }
 
     func validAttributesForMarkedText() -> [NSAttributedString.Key] {
-        print("validAttributesForMarkedText")
+        // print("validAttributesForMarkedText")
         // Copied from NSTextView on macOS 12.4. Missing NSTextInsertionUndoable, which I can't any documentation for.
         return [.font, .underlineStyle, .foregroundColor, .backgroundColor, .underlineColor, .markedClauseSegment, .languageIdentifier, .replacementIndex, .glyphInfo, .textAlternatives, .attachment]
     }

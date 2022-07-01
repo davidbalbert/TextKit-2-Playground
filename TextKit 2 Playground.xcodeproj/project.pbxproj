@@ -29,6 +29,7 @@
 		63921D83285F778100961F8E /* CGSize+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D82285F778100961F8E /* CGSize+Hashable.swift */; };
 		63921D85285F778D00961F8E /* CGRect+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D84285F778D00961F8E /* CGRect+Extensions.swift */; };
 		63921D892860C0C600961F8E /* TextLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D882860C0C600961F8E /* TextLayout.swift */; };
+		63BADCB7286E7DAC00396C40 /* CustomInvalidations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +76,7 @@
 		63921D82285F778100961F8E /* CGSize+Hashable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGSize+Hashable.swift"; sourceTree = "<group>"; };
 		63921D84285F778D00961F8E /* CGRect+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGRect+Extensions.swift"; sourceTree = "<group>"; };
 		63921D882860C0C600961F8E /* TextLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLayout.swift; sourceTree = "<group>"; };
+		63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomInvalidations.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -136,6 +138,7 @@
 				63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */,
 				63921D78285E7FAF00961F8E /* SelectionLayout.swift */,
 				638ACBBF282BD2CC0012D282 /* TextView.swift */,
+				63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */,
 				63921D882860C0C600961F8E /* TextLayout.swift */,
 				630A735F28553104007C0522 /* TextView+TextInput.swift */,
 				630A736128563BE1007C0522 /* TextView+TextSelection.swift */,
@@ -304,6 +307,7 @@
 				630A736228563BE1007C0522 /* TextView+TextSelection.swift in Sources */,
 				63921D83285F778100961F8E /* CGSize+Hashable.swift in Sources */,
 				63921D75285E370000961F8E /* NonAnimatingLayer.swift in Sources */,
+				63BADCB7286E7DAC00396C40 /* CustomInvalidations.swift in Sources */,
 				630A736428566BA9007C0522 /* NSRange+Extensions.swift in Sources */,
 				63921D85285F778D00961F8E /* CGRect+Extensions.swift in Sources */,
 				63921D79285E7FAF00961F8E /* SelectionLayout.swift in Sources */,

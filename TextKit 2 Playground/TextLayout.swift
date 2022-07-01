@@ -74,11 +74,13 @@ class TextLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLayerContent
     }
 
     func draw(_ layer: CALayer, in ctx: CGContext) {
-        guard let textLayoutFragment = layer.value(forKey: "textLayoutFragment") as? NSTextLayoutFragment else {
+        guard let textView = textView, let textLayoutFragment = layer.value(forKey: "textLayoutFragment") as? NSTextLayoutFragment else {
             return
         }
 
-        textLayoutFragment.draw(at: .zero, in: ctx)
+        textView.effectiveAppearance.performAsCurrentDrawingAppearance {
+            textLayoutFragment.draw(at: .zero, in: ctx)
+        }
     }
 
     func layer(_ layer: CALayer, shouldInheritContentsScale newScale: CGFloat, from window: NSWindow) -> Bool {

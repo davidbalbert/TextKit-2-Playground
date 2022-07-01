@@ -37,12 +37,20 @@ class InsertionPointLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLa
         layer.anchorPoint = .zero
         layer.bounds = CGRect(origin: .zero, size: rect.size)
         layer.position = rect.origin
-        layer.backgroundColor = NSColor.black.cgColor
         layer.contentsScale = textView?.window?.backingScaleFactor ?? 1.0
 
         layer.delegate = self
+        layer.setNeedsDisplay()
 
         return layer
+    }
+
+    func display(_ layer: CALayer) {
+        guard let textView = textView else { return }
+
+        textView.effectiveAppearance.performAsCurrentDrawingAppearance {
+            layer.backgroundColor = textView.insertionPointColor.cgColor
+        }
     }
 
     func layer(_ layer: CALayer, shouldInheritContentsScale newScale: CGFloat, from window: NSWindow) -> Bool {
