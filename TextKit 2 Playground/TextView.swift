@@ -379,10 +379,7 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         }
 
         if textStorage.containsAttribute(.backgroundColor, in: range) {
-            let s = NSMutableAttributedString(attributedString: textStorage.attributedSubstring(from: range))
-            s.removeAttribute(.backgroundColor, range: NSRange(location: 0, length: s.length))
-
-            return NSTextParagraph(attributedString: s)
+            return NSTextParagraph(attributedString: textStorage.attributedSubstring(from: range).withoutBackgroundColor)
         } else {
             return nil
         }
