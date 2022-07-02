@@ -15,4 +15,18 @@ extension NSAttributedString {
 
         return s
     }
+
+    func containsAttribute(_ name: NSAttributedString.Key, in range: NSRange) -> Bool {
+        var found = false
+
+        enumerateAttribute(name, in: range, options: .longestEffectiveRangeNotRequired) { color, attributeRange , stop in
+
+            if color != nil {
+                found = true
+                stop.pointee = true
+            }
+        }
+
+        return found
+    }
 }

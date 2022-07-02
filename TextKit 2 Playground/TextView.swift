@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValidation {
+class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutControllerDelegate, NSMenuItemValidation {
     class func scrollableTextView() -> NSScrollView {
         let textView = Self()
 
@@ -23,7 +23,15 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         return scrollView
     }
 
-    @Invalidating(.layout) var textContentStorage: NSTextContentStorage? = nil
+    @Invalidating(.layout) var textContentStorage: NSTextContentStorage? = nil {
+        willSet {
+            textContentStorage?.delegate = nil
+        }
+        didSet {
+            textContentStorage?.delegate = self
+        }
+    }
+
     @Invalidating(.layout) var textLayoutManager: NSTextLayoutManager? = nil {
         willSet {
             textLayoutManager?.textViewportLayoutController.delegate = nil
@@ -166,6 +174,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         super.init(frame: frameRect)
 
         textViewportLayoutController?.delegate = self
+        textContentStorage?.delegate = self
 
         let trackingArea = NSTrackingArea(rect: .zero, options: [.inVisibleRect, .cursorUpdate, .activeInKeyWindow], owner: self)
         addTrackingArea(trackingArea)
@@ -360,6 +369,23 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
         previousFinalLayoutFragment = layoutFragment
 
         return layoutFragment
+    }
+
+    // MARK: - NSTextContentStorageDelegate
+
+    func textContentStorage(_ textContentStorage: NSTextContentStorage, textParagraphWith range: NSRange) -> NSTextParagraph? {
+        guard let textStorage = textStorage else {
+            return nil
+        }
+
+        if textStorage.containsAttribute(.backgroundColor, in: range) {
+            let s = NSMutableAttributedString(attributedString: textStorage.attributedSubstring(from: range))
+            s.removeAttribute(.backgroundColor, range: NSRange(location: 0, length: s.length))
+
+            return NSTextParagraph(attributedString: s)
+        } else {
+            return nil
+        }
     }
 
     // MARK: - NSTextViewportLayoutControllerDelegate
@@ -589,16 +615,7 @@ class TextView: NSView, NSTextViewportLayoutControllerDelegate, NSMenuItemValida
 
         switch objects.first {
         case let attributedString as NSAttributedString:
-            // TODO: Actually handle attributed strings with background color correctly.
-            // NSTextLayoutFragment.draw(at:in:), draws the text background color directly
-            // into each CALayer. Because the text layers are drawn above the text selection layers,
-            // a string with a background color will hide the text selection.
-            //
-            // A real solution to this problem might be to implement NSTextContentStorageDelegate
-            // and use textContentStorage(_:textParagraphWith:) to always return NSTextParagraphs
-            // without background color. Then we could render the background colors in CALayers that
-            // are behind the text selection layers.
-            replaceCharacters(in: selectedTextRanges, with: attributedString.withoutBackgroundColor)
+            replaceCharacters(in: selectedTextRanges, with: attributedString)
         case let string as String:
             replaceCharacters(in: selectedTextRanges, with: string)
         default:
