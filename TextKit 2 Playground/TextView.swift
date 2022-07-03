@@ -293,28 +293,28 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
             return
         }
 
-        print("============")
+        guard let textParagraph = textLayoutFragment.textElement as? NSTextParagraph else {
+            return
+        }
 
-        for lineFragment in textLayoutFragment.textLineFragments {
-            lineFragment.attributedString.enumerateAttribute(.undrawnBackgroundColor, in: lineFragment.characterRange) { color, range, _ in
-                guard let color = color as? NSColor else {
-                    return
-                }
+        let attributedString = textParagraph.attributedString
+        let stringRange = NSRange(location: 0, length: attributedString.length)
 
-                print(range)
+        attributedString.enumerateAttribute(.undrawnBackgroundColor, in: stringRange) { color, range, _ in
+            guard let color = color as? NSColor else {
+                return
+            }
 
-                let documentLocation = textContentStorage.documentRange.location
-                let fragmentLocation = textLayoutFragment.rangeInElement.location
-                let fragmentOffset = textContentStorage.offset(from: documentLocation, to: fragmentLocation)
+            let documentLocation = textContentStorage.documentRange.location
+            let fragmentLocation = textLayoutFragment.rangeInElement.location
+            let fragmentOffset = textContentStorage.offset(from: documentLocation, to: fragmentLocation)
 
-                guard let rangeInDocument = range.offset(by: fragmentOffset) else { return }
-                guard let textRange = NSTextRange(rangeInDocument, in: textContentStorage) else { return }
+            guard let rangeInDocument = range.offset(by: fragmentOffset) else { return }
+            guard let textRange = NSTextRange(rangeInDocument, in: textContentStorage) else { return }
 
-                textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, frame, _, _ in
-                    print(frame.pixelAligned, color)
-                    block(frame.pixelAligned, color)
-                    return true
-                }
+            textLayoutManager.enumerateTextSegments(in: textRange, type: .highlight, options: .rangeNotRequired) { _, frame, _, _ in
+                block(frame.pixelAligned, color)
+                return true
             }
         }
     }
