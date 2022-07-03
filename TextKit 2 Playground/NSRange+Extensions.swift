@@ -14,4 +14,18 @@ extension NSRange {
 
         self.init(location: location, length: length)
     }
+
+    func offset(by offset: Int) -> NSRange? {
+        if location == NSNotFound {
+            return nil
+        }
+
+        let newLocation = location + offset
+
+        if newLocation < 0 {
+            return nil
+        }
+
+        return NSRange(location: newLocation, length: length)
+    }
 }

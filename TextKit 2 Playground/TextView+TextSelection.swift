@@ -263,7 +263,7 @@ extension TextView {
         let rangesInViewport = nonEmptySelectedTextRanges.compactMap { $0.intersection(viewportRange) }
 
         for textRange in rangesInViewport {
-            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection) { _, segmentFrame, _, _ in
+            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
                 block(segmentFrame.pixelAligned)
                 return true
             }
@@ -282,7 +282,7 @@ extension TextView {
         let rangesInViewport = insertionPointTextRanges.compactMap { $0.intersection(viewportRange) }
 
         for textRange in rangesInViewport {
-            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection) { _, segmentFrame, _, _ in
+            textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, segmentFrame, _, _ in
                 var insertionPointFrame = segmentFrame.pixelAligned
                 insertionPointFrame.size.width = 1
 

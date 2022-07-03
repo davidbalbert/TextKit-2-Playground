@@ -13,6 +13,7 @@
 		63371574284165FE000CC61F /* Moby Dick.txt in Resources */ = {isa = PBXBuildFile; fileRef = 63371573284165FE000CC61F /* Moby Dick.txt */; };
 		63558151286912A000C8F14B /* NSAttributedString+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */; };
 		635581532869446200C8F14B /* NSTextRange+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635581522869446200C8F14B /* NSTextRange+Extensions.swift */; };
+		635D1B2F2870F7C100989ED6 /* TextBackgroundLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635D1B2E2870F7C100989ED6 /* TextBackgroundLayout.swift */; };
 		638ACB97282BD26E0012D282 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638ACB96282BD26E0012D282 /* AppDelegate.swift */; };
 		638ACB99282BD26F0012D282 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 638ACB98282BD26F0012D282 /* Assets.xcassets */; };
 		638ACB9C282BD26F0012D282 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 638ACB9A282BD26F0012D282 /* MainMenu.xib */; };
@@ -56,6 +57,7 @@
 		63371573284165FE000CC61F /* Moby Dick.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Moby Dick.txt"; sourceTree = "<group>"; };
 		63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSAttributedString+Extensions.swift"; sourceTree = "<group>"; };
 		635581522869446200C8F14B /* NSTextRange+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSTextRange+Extensions.swift"; sourceTree = "<group>"; };
+		635D1B2E2870F7C100989ED6 /* TextBackgroundLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextBackgroundLayout.swift; sourceTree = "<group>"; };
 		638ACB93282BD26E0012D282 /* TextKit 2 Playground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TextKit 2 Playground.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		638ACB96282BD26E0012D282 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		638ACB98282BD26F0012D282 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -140,6 +142,7 @@
 				638ACBBF282BD2CC0012D282 /* TextView.swift */,
 				63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */,
 				63921D882860C0C600961F8E /* TextLayout.swift */,
+				635D1B2E2870F7C100989ED6 /* TextBackgroundLayout.swift */,
 				630A735F28553104007C0522 /* TextView+TextInput.swift */,
 				630A736128563BE1007C0522 /* TextView+TextSelection.swift */,
 				63921D7C285EB98A00961F8E /* WeakDictionary.swift */,
@@ -309,6 +312,7 @@
 				63921D75285E370000961F8E /* NonAnimatingLayer.swift in Sources */,
 				63BADCB7286E7DAC00396C40 /* CustomInvalidations.swift in Sources */,
 				630A736428566BA9007C0522 /* NSRange+Extensions.swift in Sources */,
+				635D1B2F2870F7C100989ED6 /* TextBackgroundLayout.swift in Sources */,
 				63921D85285F778D00961F8E /* CGRect+Extensions.swift in Sources */,
 				63921D79285E7FAF00961F8E /* SelectionLayout.swift in Sources */,
 				63921D892860C0C600961F8E /* TextLayout.swift in Sources */,

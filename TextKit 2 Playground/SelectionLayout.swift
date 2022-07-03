@@ -22,7 +22,6 @@ class SelectionLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLayerCo
 
         guard let textView = textView else { return }
 
-        // TODO: use layer.sublayers.difference? That could be fun.
         layer.sublayers = nil
 
         textView.enumerateSelectionFramesInViewport { selectionFrame in

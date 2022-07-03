@@ -199,10 +199,12 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         super.prepareContent(in: rect)
     }
 
+    internal var textBackgroundLayer: CALayer = NonAnimatingLayer()
     internal var selectionLayer: CALayer = NonAnimatingLayer()
     internal var textLayer: CALayer = NonAnimatingLayer()
     internal var insertionPointLayer: CALayer = NonAnimatingLayer()
 
+    private lazy var textBackgroundLayout = TextBackgroundLayout(textView: self, layer: textBackgroundLayer)
     private lazy var selectionLayout = SelectionLayout(textView: self)
     private lazy var textLayout = TextLayout(textView: self)
     private lazy var insertionPointLayout = InsertionPointLayout(textView: self)
@@ -211,6 +213,12 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         super.layout()
 
         guard let layer = layer else { return }
+
+        if textBackgroundLayer.superlayer == nil {
+            textBackgroundLayer.anchorPoint = .zero
+            textBackgroundLayer.name = "Text backgrounds"
+            layer.addSublayer(textBackgroundLayer)
+        }
 
         if selectionLayer.superlayer == nil {
             selectionLayer.layoutManager = selectionLayout
@@ -277,6 +285,37 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
 
         for layer in sublayers {
             layer.setNeedsDisplay()
+        }
+    }
+
+    func enumerateBackgroundColorFrames(in textLayoutFragment: NSTextLayoutFragment, using block: (CGRect, NSColor) -> Void) {
+        guard let textContentStorage = textContentStorage, let textLayoutManager = textLayoutManager else {
+            return
+        }
+
+        print("============")
+
+        for lineFragment in textLayoutFragment.textLineFragments {
+            lineFragment.attributedString.enumerateAttribute(.undrawnBackgroundColor, in: lineFragment.characterRange) { color, range, _ in
+                guard let color = color as? NSColor else {
+                    return
+                }
+
+                print(range)
+
+                let documentLocation = textContentStorage.documentRange.location
+                let fragmentLocation = textLayoutFragment.rangeInElement.location
+                let fragmentOffset = textContentStorage.offset(from: documentLocation, to: fragmentLocation)
+
+                guard let rangeInDocument = range.offset(by: fragmentOffset) else { return }
+                guard let textRange = NSTextRange(rangeInDocument, in: textContentStorage) else { return }
+
+                textLayoutManager.enumerateTextSegments(in: textRange, type: .selection, options: .rangeNotRequired) { _, frame, _, _ in
+                    print(frame.pixelAligned, color)
+                    block(frame.pixelAligned, color)
+                    return true
+                }
+            }
         }
     }
 
@@ -379,7 +418,9 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         }
 
         if textStorage.containsAttribute(.backgroundColor, in: range) {
-            return NSTextParagraph(attributedString: textStorage.attributedSubstring(from: range).withoutBackgroundColor)
+            let attributedString = textStorage.attributedSubstring(from: range).replacingAttribute(.backgroundColor, with: .undrawnBackgroundColor)
+
+            return NSTextParagraph(attributedString: attributedString)
         } else {
             return nil
         }
@@ -403,10 +444,12 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     }
 
     func textViewportLayoutControllerWillLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
+        textBackgroundLayout.textView(self, textViewportLayoutControllerWillLayout: textViewportLayoutController)
         textLayout.textView(self, textViewportLayoutControllerWillLayout: textViewportLayoutController)
     }
 
     func textViewportLayoutController(_ textViewportLayoutController: NSTextViewportLayoutController, configureRenderingSurfaceFor textLayoutFragment: NSTextLayoutFragment) {
+        textBackgroundLayout.textView(self, textViewportLayoutController: textViewportLayoutController, configureRenderingSurfaceFor: textLayoutFragment)
         textLayout.textView(self, textViewportLayoutController: textViewportLayoutController, configureRenderingSurfaceFor: textLayoutFragment)
     }
 
