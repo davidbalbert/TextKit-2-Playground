@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class TextView: NSView {
+class TextView: NSView, NSTextContentStorageDelegate {
     class func scrollableTextView() -> NSScrollView {
         let textView = Self()
 

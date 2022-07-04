@@ -7,7 +7,7 @@
 
 import Cocoa
 
-extension TextView: NSTextContentStorageDelegate, NSTextViewportLayoutControllerDelegate {
+extension TextView: NSTextViewportLayoutControllerDelegate {
     override func layout() {
         super.layout()
 
