@@ -45,23 +45,23 @@ extension TextView {
     func startSelection(at point: CGPoint) {
         let navigation = textLayoutManager.textSelectionNavigation
 
-        textLayoutManager.textSelections = navigation.textSelections(interactingAt: point,
-                                                                     inContainerAt: textLayoutManager.documentRange.location,
-                                                                     anchors: [],
-                                                                     modifiers: [],
-                                                                     selecting: false,
-                                                                     bounds: .zero)
+        textSelections = navigation.textSelections(interactingAt: point,
+                                                   inContainerAt: textLayoutManager.documentRange.location,
+                                                   anchors: [],
+                                                   modifiers: [],
+                                                   selecting: false,
+                                                   bounds: .zero)
     }
 
     func extendSelection(to point: CGPoint) {
         let navigation = textLayoutManager.textSelectionNavigation
 
-        textLayoutManager.textSelections = navigation.textSelections(interactingAt: point,
-                                                                     inContainerAt: textLayoutManager.documentRange.location,
-                                                                     anchors: textLayoutManager.textSelections,
-                                                                     modifiers: .extend,
-                                                                     selecting: false,
-                                                                     bounds: .zero)
+        textSelections = navigation.textSelections(interactingAt: point,
+                                                   inContainerAt: textLayoutManager.documentRange.location,
+                                                   anchors: textSelections,
+                                                   modifiers: .extend,
+                                                   selecting: false,
+                                                   bounds: .zero)
     }
 
     // TODO: handle zero length selections when isEditable is false
@@ -70,7 +70,7 @@ extension TextView {
 
         let navigation = textLayoutManager.textSelectionNavigation
 
-        textLayoutManager.textSelections = textLayoutManager.textSelections.compactMap { textSelection in
+        textSelections = textSelections.compactMap { textSelection in
             navigation.destinationSelection(for: textSelection,
                                             direction: direction,
                                             destination: destination,
@@ -86,7 +86,7 @@ extension TextView {
     func delete(direction: NSTextSelectionNavigation.Direction, destination: NSTextSelectionNavigation.Destination) {
         guard isEditable else { return }
 
-        let deletionRanges = textLayoutManager.textSelections.flatMap { textSelection in
+        let deletionRanges = textSelections.flatMap { textSelection in
             textLayoutManager.textSelectionNavigation.deletionRanges(for: textSelection,
                                                                      direction: direction,
                                                                      destination: destination,

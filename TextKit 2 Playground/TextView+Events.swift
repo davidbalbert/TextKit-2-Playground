@@ -59,7 +59,7 @@ extension TextView {
 
         let point = convert(event.locationInWindow, from: nil)
 
-        if event.modifierFlags.contains(.shift) && !textLayoutManager.textSelections.isEmpty {
+        if event.modifierFlags.contains(.shift) && !textSelections.isEmpty {
             extendSelection(to: point)
         } else {
             startSelection(at: point)

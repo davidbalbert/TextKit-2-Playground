@@ -250,7 +250,7 @@ extension TextView: NSMenuItemValidation {
     @objc override func selectAll(_ sender: Any?) {
         guard isSelectable else { return }
 
-        textLayoutManager.textSelections = [NSTextSelection(range: textLayoutManager.documentRange, affinity: .downstream, granularity: .character)]
+        textSelections = [NSTextSelection(range: textLayoutManager.documentRange, affinity: .downstream, granularity: .character)]
 
         selectionLayer.setNeedsLayout()
         insertionPointLayer.setNeedsLayout()
