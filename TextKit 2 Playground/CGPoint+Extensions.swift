@@ -1,5 +1,5 @@
 //
-//  CGSize+Hashable.swift
+//  CGPoint+Extensions.swift
 //  TextKit 2 Playground
 //
 //  Created by David Albert on 6/19/22.
@@ -7,9 +7,9 @@
 
 import Foundation
 
-extension CGSize: Hashable {
+extension CGPoint: Hashable {
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(width)
-        hasher.combine(height)
+        hasher.combine(x)
+        hasher.combine(y)
     }
 }

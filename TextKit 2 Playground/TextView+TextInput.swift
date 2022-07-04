@@ -17,7 +17,7 @@ extension TextView: NSTextInputClient {
         // I seem to always get {NSNotFound, 0} for replacementRange. For now, I'm
         // going to ignore replacement range, but if I get a real replacementRange,
         // I want to know about it.
-        assert(replacementRange.location == NSNotFound)
+        assert(replacementRange == .notFound)
 
         switch string {
         case let attributedString as NSAttributedString:
@@ -57,7 +57,7 @@ extension TextView: NSTextInputClient {
         print("selectedRange")
 
         guard let textRange = textSelections.first?.textRanges.first else {
-            return NSRange(location: NSNotFound, length: 0)
+            return .notFound
         }
 
         return NSRange(textRange, in: textContentStorage)
@@ -66,7 +66,7 @@ extension TextView: NSTextInputClient {
     func markedRange() -> NSRange {
         print("markedRange")
 
-        return NSRange(location: 0, length: 0)
+        return .notFound
     }
 
     func hasMarkedText() -> Bool {

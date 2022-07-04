@@ -59,6 +59,8 @@ class TextView: NSView, NSTextContentStorageDelegate {
         }
     }
 
+    @Invalidating(.insertionPointDisplay) var insertionPointColor: NSColor = .black
+
     @Invalidating(.textDisplay) var textColor: NSColor = .black {
         didSet {
             typingAttributes[.foregroundColor] = textColor
@@ -66,8 +68,6 @@ class TextView: NSView, NSTextContentStorageDelegate {
             setAttributesForDocumentRange([.foregroundColor: textColor])
         }
     }
-
-    @Invalidating(.insertionPointDisplay) var insertionPointColor: NSColor = .black
 
     @Invalidating(.layout) public var isRichText: Bool = true {
         didSet {

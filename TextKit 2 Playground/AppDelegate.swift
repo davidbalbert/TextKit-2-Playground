@@ -18,14 +18,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let scrollView = TextView.scrollableTextView()
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.autoresizingMask = [.width, .height]
+        scrollView.frame = contentView.bounds
 
         contentView.subviews = [scrollView]
-
-        scrollView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
-        scrollView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-        scrollView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
-        scrollView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
 
         let textView = scrollView.documentView as! TextView
 
