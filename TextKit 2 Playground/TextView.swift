@@ -314,6 +314,12 @@ class TextView: NSView {
         updateInsertionPointTimer()
     }
 
+    override func viewDidChangeEffectiveAppearance() {
+        setSelectionNeedsDisplay()
+        setTextNeedsDisplay()
+        setInsertionPointNeedsDisplay()
+    }
+
     // MARK: - Character manipulation
 
     func replaceCharacters(in textRanges: [NSTextRange], with string: String) {

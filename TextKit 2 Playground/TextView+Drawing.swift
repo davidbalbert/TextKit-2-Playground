@@ -57,12 +57,6 @@ extension TextView: NSTextContentStorageDelegate, NSTextViewportLayoutController
         textViewportLayoutController.layoutViewport()
     }
 
-    override func viewDidChangeEffectiveAppearance() {
-        setSelectionNeedsDisplay()
-        setTextNeedsDisplay()
-        setInsertionPointNeedsDisplay()
-    }
-
     func setSelectionNeedsDisplay() {
         guard let sublayers = selectionLayer.sublayers else { return }
 
