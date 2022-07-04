@@ -40,6 +40,16 @@ class TextView: NSView {
         textLayoutManager.textViewportLayoutController
     }
 
+    internal var textBackgroundLayer: CALayer = NonAnimatingLayer()
+    internal var selectionLayer: CALayer = NonAnimatingLayer()
+    internal var textLayer: CALayer = NonAnimatingLayer()
+    internal var insertionPointLayer: CALayer = NonAnimatingLayer()
+
+    internal lazy var textBackgroundLayout = TextBackgroundLayout(textView: self, layer: textBackgroundLayer)
+    internal lazy var selectionLayout = SelectionLayout(textView: self)
+    internal lazy var textLayout = TextLayout(textView: self)
+    internal lazy var insertionPointLayout = InsertionPointLayout(textView: self)
+
     var typingAttributes: [NSAttributedString.Key : Any] = [.foregroundColor: NSColor.black]
 
     @Invalidating(.display) var backgroundColor: NSColor = .white {
@@ -136,9 +146,16 @@ class TextView: NSView {
         createInsertionPointIfNecessary()
     }
 
-    // Pretty sure this is unnecessary, but the LayoutWithTextKit2 sets it, so
-    // we might as well. One thing that's odd: no matter what I do, I haven't
-    // seen the scroll view ask me for overdraw without scrolling
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+
+        if (textContainer.size.width != bounds.width) {
+            textContainer.size = CGSize(width: frame.width, height: 0)
+        }
+    }
+
+    // MARK: - Scrolling
+
     override class var isCompatibleWithResponsiveScrolling: Bool {
         true
     }
@@ -150,16 +167,6 @@ class TextView: NSView {
 
         super.prepareContent(in: rect)
     }
-
-    internal var textBackgroundLayer: CALayer = NonAnimatingLayer()
-    internal var selectionLayer: CALayer = NonAnimatingLayer()
-    internal var textLayer: CALayer = NonAnimatingLayer()
-    internal var insertionPointLayer: CALayer = NonAnimatingLayer()
-
-    internal lazy var textBackgroundLayout = TextBackgroundLayout(textView: self, layer: textBackgroundLayer)
-    internal lazy var selectionLayout = SelectionLayout(textView: self)
-    internal lazy var textLayout = TextLayout(textView: self)
-    internal lazy var insertionPointLayout = InsertionPointLayout(textView: self)
 
     func enumerateBackgroundColorFrames(in textLayoutFragment: NSTextLayoutFragment, using block: (CGRect, NSColor) -> Void) {
         guard let textParagraph = textLayoutFragment.textElement as? NSTextParagraph else {
@@ -188,51 +195,7 @@ class TextView: NSView {
         }
     }
 
-    private var insertionPointTimer: Timer?
-
-    // TODO: split into an onInterval and offInterval and read NSTextInsertionPointBlinkPeriodOn and NSTextInsertionPointBlinkPeriodOff from defaults
-    private var insertionPointBlinkInterval: TimeInterval {
-        0.5
-    }
-
-    var shouldDrawInsertionPoint: Bool {
-        isEditable && isFirstResponder && windowIsKey && superview != nil
-    }
-
-    func updateInsertionPointTimer() {
-        insertionPointTimer?.invalidate()
-
-        if shouldDrawInsertionPoint {
-            insertionPointLayer.isHidden = false
-
-            insertionPointTimer = Timer.scheduledTimer(withTimeInterval: insertionPointBlinkInterval, repeats: true) { [weak self] timer in
-                guard let self = self else { return }
-                self.insertionPointLayer.isHidden.toggle()
-            }
-        } else {
-            insertionPointLayer.isHidden = true
-        }
-    }
-
-    func createInsertionPointIfNecessary() {
-        if !isEditable {
-            return
-        }
-
-        let textRange = NSTextRange(location: textLayoutManager.documentRange.location)
-        textLayoutManager.textSelections = [NSTextSelection(range: textRange, affinity: .downstream, granularity: .character)]
-    }
-
-    override func setFrameSize(_ newSize: NSSize) {
-        super.setFrameSize(newSize)
-        updateTextContainerSize()
-    }
-
-    private func updateTextContainerSize() {
-        if (textContainer.size.width != bounds.width) {
-            textContainer.size = CGSize(width: frame.width, height: 0)
-        }
-    }
+    internal var insertionPointTimer: Timer?
 
     internal func updateFrameHeightIfNeeded() {
         guard let scrollView = enclosingScrollView else {
@@ -250,23 +213,13 @@ class TextView: NSView {
         }
     }
 
-    private var previousFinalLayoutFragment: NSTextLayoutFragment?
-
     private var finalLayoutFragment: NSTextLayoutFragment? {
-        // finalLayoutFragment is read after we finish laying out the text, but before we draw. If the viewport contains
-        // the finalLayoutFragment, we don't want to invalidate it, because then we wouldn't draw it.
-//        if let previousFinalLayoutFragment = previousFinalLayoutFragment, !layoutFragments.contains(previousFinalLayoutFragment) {
-//            textLayoutManager.invalidateLayout(for: previousFinalLayoutFragment.rangeInElement)
-//        }
-
         var layoutFragment: NSTextLayoutFragment? = nil
 
         textLayoutManager.enumerateTextLayoutFragments(from: textLayoutManager.documentRange.endLocation, options: [.ensuresLayout, .reverse]) { fragment in
             layoutFragment = fragment
             return false
         }
-
-        previousFinalLayoutFragment = layoutFragment
 
         return layoutFragment
     }

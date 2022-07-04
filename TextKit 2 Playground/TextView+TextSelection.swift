@@ -133,5 +133,38 @@ extension TextView {
             }
         }
     }
+
+    // TODO: split into an onInterval and offInterval and read NSTextInsertionPointBlinkPeriodOn and NSTextInsertionPointBlinkPeriodOff from defaults
+    private var insertionPointBlinkInterval: TimeInterval {
+        0.5
+    }
+
+    var shouldDrawInsertionPoint: Bool {
+        isEditable && isFirstResponder && windowIsKey && superview != nil
+    }
+
+    func updateInsertionPointTimer() {
+        insertionPointTimer?.invalidate()
+
+        if shouldDrawInsertionPoint {
+            insertionPointLayer.isHidden = false
+
+            insertionPointTimer = Timer.scheduledTimer(withTimeInterval: insertionPointBlinkInterval, repeats: true) { [weak self] timer in
+                guard let self = self else { return }
+                self.insertionPointLayer.isHidden.toggle()
+            }
+        } else {
+            insertionPointLayer.isHidden = true
+        }
+    }
+
+    func createInsertionPointIfNecessary() {
+        if !isEditable {
+            return
+        }
+
+        let textRange = NSTextRange(location: textLayoutManager.documentRange.location)
+        textSelections = [NSTextSelection(range: textRange, affinity: .downstream, granularity: .character)]
+    }
 }
 
