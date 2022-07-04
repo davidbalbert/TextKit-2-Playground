@@ -8,12 +8,12 @@
 import Cocoa
 
 extension NSTextRange {
-    convenience init?(_ nsRange: NSRange, in textContentManager: NSTextContentManager) {
-        guard let location = textContentManager.location(textContentManager.documentRange.location, offsetBy: nsRange.location) else {
+    convenience init?(_ nsRange: NSRange, in textElementProvider: NSTextElementProvider) {
+        guard let location = textElementProvider.location?(textElementProvider.documentRange.location, offsetBy: nsRange.location) else {
             return nil
         }
 
-        guard let endLocation = textContentManager.location(location, offsetBy: nsRange.length) else {
+        guard let endLocation = textElementProvider.location?(location, offsetBy: nsRange.length) else {
             return nil
         }
 

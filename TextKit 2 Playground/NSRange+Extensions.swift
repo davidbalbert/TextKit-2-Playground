@@ -8,9 +8,9 @@
 import Cocoa
 
 extension NSRange {
-    init(_ textRange: NSTextRange, in textContentManager: NSTextContentManager) {
-        let location = textContentManager.offset(from: textContentManager.documentRange.location, to: textRange.location)
-        let length = textContentManager.offset(from: textRange.location, to: textRange.endLocation)
+    init(_ textRange: NSTextRange, in textElementProvider: NSTextElementProvider) {
+        let location = textElementProvider.offset?(from: textElementProvider.documentRange.location, to: textRange.location) ?? NSNotFound
+        let length = textElementProvider.offset?(from: textRange.location, to: textRange.endLocation) ?? 0
 
         self.init(location: location, length: length)
     }
