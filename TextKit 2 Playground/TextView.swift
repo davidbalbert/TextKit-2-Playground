@@ -23,35 +23,29 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         return scrollView
     }
 
-    @Invalidating(.layout) var textContentStorage: NSTextContentStorage? = nil {
-        willSet {
-            textContentStorage?.delegate = nil
-        }
-        didSet {
-            textContentStorage?.delegate = self
-        }
+    override var isFlipped: Bool {
+        true
     }
 
-    @Invalidating(.layout) var textLayoutManager: NSTextLayoutManager? = nil {
-        willSet {
-            textLayoutManager?.textViewportLayoutController.delegate = nil
-        }
-        didSet {
-            textLayoutManager?.textViewportLayoutController.delegate = self
-            // The LayoutWithTextKit2 sample also calls updateFrameHeightIfNeeded(). I don't think we need
-            // to do that here. Setting textLayoutManager invalidates display. draw(_:) calls
-            // viewportLayoutController.layoutViewport(), which eventually calls updateFrameHeightIfNeeded().
-            updateTextContainerSize()
-        }
+    override var isOpaque: Bool {
+        true
+    }
+
+    internal var textLayoutManager = NSTextLayoutManager()
+    internal var textStorage = NSTextStorage()
+    internal var textContentStorage = NSTextContentStorage()
+    internal var textContainer = NSTextContainer()
+
+    internal var textViewportLayoutController: NSTextViewportLayoutController {
+        textLayoutManager.textViewportLayoutController
     }
 
     var typingAttributes: [NSAttributedString.Key : Any] = [.foregroundColor: NSColor.black]
 
     @Invalidating(.display) var backgroundColor: NSColor = .white {
+        // TODO: Maybe enforce the invariant that no text has a background color that the document has. All that text should have a transparent background color.
         didSet {
             enclosingScrollView?.backgroundColor = backgroundColor
-
-            removeAttributeForDocumentRange(.backgroundColor)
         }
     }
 
@@ -65,7 +59,7 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
 
     @Invalidating(.insertionPointDisplay) var insertionPointColor: NSColor = .black
 
-    @Invalidating(.layout) var isRichText: Bool = true {
+    @Invalidating(.layout) public var isRichText: Bool = true {
         didSet {
             if isRichText {
                 backgroundColor = .white
@@ -75,65 +69,26 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
                 backgroundColor = .textBackgroundColor
                 textColor = .textColor
                 insertionPointColor = .textColor
+                removeAttributeForDocumentRange(.backgroundColor)
             }
-        }
-    }
-
-    internal var textViewportLayoutController: NSTextViewportLayoutController? {
-        textLayoutManager?.textViewportLayoutController
-    }
-
-    var textContainer: NSTextContainer? {
-        get {
-            textLayoutManager?.textContainer
-        }
-        set {
-            // TODO: do we have to do something smarter here (like take other TextKit objects from the textContainer)
-            textLayoutManager?.textContainer = newValue
-        }
-    }
-
-    var textStorage: NSTextStorage? {
-        get {
-            textContentStorage?.textStorage
-        }
-        set {
-            // TODO: do we have to do something smarter here (like take other TextKit objects from the textStorage)
-            textContentStorage?.textStorage = newValue
-            createInsertionPointIfNecessary()
         }
     }
 
     var string: String {
         get {
-            textContentStorage?.textStorage?.string ?? ""
+            textStorage.string
         }
         set {
-            let attributedString = NSAttributedString(string: newValue, attributes: typingAttributes)
-
-            if let textStorage = textContentStorage?.textStorage {
-                textStorage.setAttributedString(attributedString)
-            } else {
-                textContentStorage?.textStorage = NSTextStorage(attributedString: attributedString)
-            }
-
+            textStorage.setAttributedString(NSAttributedString(string: newValue))
             createInsertionPointIfNecessary()
         }
-    }
-
-    override var isFlipped: Bool {
-        true
-    }
-
-    override var isOpaque: Bool {
-        true
     }
 
     public var isSelectable: Bool = true {
         didSet {
             if !isSelectable {
                 isEditable = false
-                textLayoutManager?.textSelections = []
+                textSelections = []
             }
 
             selectionLayer.setNeedsLayout()
@@ -154,34 +109,31 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
 
     internal var markedRanges: [NSTextRange] = []
 
-    convenience override init(frame frameRect: NSRect) {
-        let textContainer = NSTextContainer()
-        textContainer.widthTracksTextView = true // TODO: we don't actually consult this yet
-
-        let textLayoutManager = NSTextLayoutManager()
-        textLayoutManager.textContainer = textContainer
-
-        let textContentStorage = NSTextContentStorage()
-        textContentStorage.addTextLayoutManager(textLayoutManager)
-        textContentStorage.primaryTextLayoutManager = textLayoutManager
-
-        self.init(frame: frameRect, textContainer: textContainer)
-    }
-
-    init(frame frameRect: NSRect, textContainer: NSTextContainer?) {
-        textLayoutManager = textContainer?.textLayoutManager
-        textContentStorage = textContainer?.textLayoutManager?.textContentManager as? NSTextContentStorage
+    override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-
-        textViewportLayoutController?.delegate = self
-        textContentStorage?.delegate = self
-
-        let trackingArea = NSTrackingArea(rect: .zero, options: [.inVisibleRect, .cursorUpdate, .activeInKeyWindow], owner: self)
-        addTrackingArea(trackingArea)
+        commonInit()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        commonInit()
+    }
+
+    func commonInit() {
+        textContentStorage.textStorage = textStorage
+        textViewportLayoutController.delegate = self
+        textContainer.size.width = bounds.width
+        textContainer.size.height = 0
+
+        textContentStorage.addTextLayoutManager(textLayoutManager)
+        textContentStorage.primaryTextLayoutManager = textLayoutManager
+
+        textLayoutManager.textContainer = textContainer
+
+        let trackingArea = NSTrackingArea(rect: .zero, options: [.inVisibleRect, .cursorUpdate, .activeInKeyWindow], owner: self)
+        addTrackingArea(trackingArea)
+
+        createInsertionPointIfNecessary()
     }
 
     // Pretty sure this is unnecessary, but the LayoutWithTextKit2 sets it, so
@@ -255,7 +207,7 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     }
 
     func layoutViewport() {
-        textViewportLayoutController?.layoutViewport()
+        textViewportLayoutController.layoutViewport()
     }
 
     override func viewDidChangeEffectiveAppearance() {
@@ -289,10 +241,6 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     }
 
     func enumerateBackgroundColorFrames(in textLayoutFragment: NSTextLayoutFragment, using block: (CGRect, NSColor) -> Void) {
-        guard let textContentStorage = textContentStorage, let textLayoutManager = textLayoutManager else {
-            return
-        }
-
         guard let textParagraph = textLayoutFragment.textElement as? NSTextParagraph else {
             return
         }
@@ -350,10 +298,6 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
             return
         }
 
-        guard let textLayoutManager = textLayoutManager else {
-            return
-        }
-
         let textRange = NSTextRange(location: textLayoutManager.documentRange.location)
         textLayoutManager.textSelections = [NSTextSelection(range: textRange, affinity: .downstream, granularity: .character)]
     }
@@ -364,8 +308,8 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     }
 
     private func updateTextContainerSize() {
-        if (textContainer?.size.width != bounds.width) {
-            textContainer?.size = CGSize(width: frame.width, height: 0)
+        if (textContainer.size.width != bounds.width) {
+            textContainer.size = CGSize(width: frame.width, height: 0)
         }
     }
 
@@ -388,10 +332,6 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     private var previousFinalLayoutFragment: NSTextLayoutFragment?
 
     private var finalLayoutFragment: NSTextLayoutFragment? {
-        guard let textLayoutManager = textLayoutManager else {
-            return nil
-        }
-
         // finalLayoutFragment is read after we finish laying out the text, but before we draw. If the viewport contains
         // the finalLayoutFragment, we don't want to invalidate it, because then we wouldn't draw it.
 //        if let previousFinalLayoutFragment = previousFinalLayoutFragment, !layoutFragments.contains(previousFinalLayoutFragment) {
@@ -413,10 +353,6 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     // MARK: - NSTextContentStorageDelegate
 
     func textContentStorage(_ textContentStorage: NSTextContentStorage, textParagraphWith range: NSRange) -> NSTextParagraph? {
-        guard let textStorage = textStorage else {
-            return nil
-        }
-
         if textStorage.containsAttribute(.backgroundColor, in: range) {
             let attributedString = textStorage.attributedSubstring(from: range).replacingAttribute(.backgroundColor, with: .undrawnBackgroundColor)
 
@@ -528,10 +464,6 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     }
 
     func replaceCharacters(in textRanges: [NSTextRange], with attributedString: NSAttributedString) {
-        guard let textContentStorage = textContentStorage else {
-            return
-        }
-
         textContentStorage.performEditingTransaction {
             for textRange in textRanges {
                 replaceCharacters(in: textRange, with: attributedString)
@@ -545,10 +477,6 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
 
     // TODO: Maybe we should work with AttributedStrings instead?
     func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString) {
-        guard let textContentStorage = textContentStorage, let textStorage = textStorage else {
-            return
-        }
-
         textContentStorage.performEditingTransaction {
             textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
         }
@@ -563,36 +491,20 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     // MARK: - Attribute manipulation
 
     internal func setAttributesForDocumentRange(_ attrs: [NSAttributedString.Key : Any]?) {
-        guard let textContentStorage = textContentStorage else {
-            return
-        }
-
         setAttributes(attrs, textRange: textContentStorage.documentRange)
     }
 
     internal func setAttributes(_ attrs: [NSAttributedString.Key : Any]?, textRange: NSTextRange) {
-        guard let textContentStorage = textContentStorage, let textStorage = textStorage else {
-            return
-        }
-
         textContentStorage.performEditingTransaction {
             textStorage.setAttributes(attrs, range: NSRange(textRange, in: textContentStorage))
         }
     }
 
     internal func removeAttributeForDocumentRange(_ name: NSAttributedString.Key) {
-        guard let textContentStorage = textContentStorage else {
-            return
-        }
-
         removeAttribute(name, textRange: textContentStorage.documentRange)
     }
 
     internal func removeAttribute(_ name: NSAttributedString.Key, textRange: NSTextRange) {
-        guard let textContentStorage = textContentStorage, let textStorage = textStorage else {
-            return
-        }
-
         textContentStorage.performEditingTransaction {
             textStorage.removeAttribute(name, range: NSRange(textRange, in: textContentStorage))
         }
@@ -636,10 +548,6 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     }
 
     @objc func copy(_ sender: Any) {
-        guard let textContentStorage = textContentStorage, let textStorage = textStorage else {
-            return
-        }
-
         let nsRanges = nonEmptySelectedTextRanges.compactMap { NSRange($0, in: textContentStorage) }
         let attributedStrings = nsRanges.map { textStorage.attributedSubstring(from: $0) }
 
@@ -665,10 +573,6 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
 
     @objc override func selectAll(_ sender: Any?) {
         guard isSelectable else { return }
-
-        guard let textLayoutManager = textLayoutManager else {
-            return
-        }
 
         textLayoutManager.textSelections = [NSTextSelection(range: textLayoutManager.documentRange, affinity: .downstream, granularity: .character)]
         

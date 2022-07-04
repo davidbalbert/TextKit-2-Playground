@@ -54,10 +54,6 @@ extension TextView {
     func delete(direction: NSTextSelectionNavigation.Direction, destination: NSTextSelectionNavigation.Destination) {
         guard isEditable else { return }
 
-        guard let textLayoutManager = textLayoutManager else {
-            return
-        }
-
         let deletionRanges = textLayoutManager.textSelections.flatMap { textSelection in
             textLayoutManager.textSelectionNavigation.deletionRanges(for: textSelection,
                                                                      direction: direction,
@@ -103,10 +99,6 @@ extension TextView: NSTextInputClient {
     func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
         print("setMarkedText", string, selectedRange, replacementRange)
 
-        guard let textContentStorage = textContentStorage else {
-            return
-        }
-
         guard let textRange = NSTextRange(selectedRange, in: textContentStorage) else {
             return
         }
@@ -123,7 +115,7 @@ extension TextView: NSTextInputClient {
     func selectedRange() -> NSRange {
         print("selectedRange")
 
-        guard let textContentStorage = textContentStorage, let textRange = textLayoutManager?.textSelections.first?.textRanges.first else {
+        guard let textRange = textSelections.first?.textRanges.first else {
             return NSRange(location: NSNotFound, length: 0)
         }
 

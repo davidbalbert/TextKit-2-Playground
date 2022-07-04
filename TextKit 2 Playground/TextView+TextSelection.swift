@@ -12,7 +12,6 @@ extension TextView {
     override func mouseDown(with event: NSEvent) {
         guard isSelectable else { return }
 
-        guard let textLayoutManager = textLayoutManager else { return }
         let point = convert(event.locationInWindow, from: nil)
 
         if event.modifierFlags.contains(.shift) && !textLayoutManager.textSelections.isEmpty {
@@ -180,7 +179,6 @@ extension TextView {
     // MARK: - Selection manipulation
 
     func startSelection(at point: CGPoint) {
-        guard let textLayoutManager = textLayoutManager else { return }
         let navigation = textLayoutManager.textSelectionNavigation
 
         textLayoutManager.textSelections = navigation.textSelections(interactingAt: point,
@@ -192,7 +190,6 @@ extension TextView {
     }
 
     func extendSelection(to point: CGPoint) {
-        guard let textLayoutManager = textLayoutManager else { return }
         let navigation = textLayoutManager.textSelectionNavigation
 
         textLayoutManager.textSelections = navigation.textSelections(interactingAt: point,
@@ -207,7 +204,6 @@ extension TextView {
     func updateSelections(direction: NSTextSelectionNavigation.Direction, destination: NSTextSelectionNavigation.Destination, extending: Bool, confined: Bool = false) {
         guard isSelectable else { return }
 
-        guard let textLayoutManager = textLayoutManager else { return }
         let navigation = textLayoutManager.textSelectionNavigation
 
         textLayoutManager.textSelections = textLayoutManager.textSelections.compactMap { textSelection in
@@ -224,8 +220,6 @@ extension TextView {
     }
 
     func removeZeroLengthSelections() {
-        guard let textLayoutManager = textLayoutManager else { return }
-
         textLayoutManager.textSelections.removeAll { textSelection in
             textSelection.textRanges.allSatisfy { $0.isEmpty }
         }
@@ -240,11 +234,12 @@ extension TextView {
     }
 
     var textSelections: [NSTextSelection] {
-        guard let textLayoutManager = textLayoutManager else {
-            return []
+        get {
+            textLayoutManager.textSelections
         }
-
-        return textLayoutManager.textSelections
+        set {
+            textLayoutManager.textSelections = newValue
+        }
     }
 
     var selectedTextRanges: [NSTextRange] {
@@ -256,7 +251,7 @@ extension TextView {
     }
 
     func enumerateSelectionFramesInViewport(using block: (CGRect) -> Void) {
-        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
+        guard let viewportRange = textViewportLayoutController.viewportRange else {
             return
         }
 
@@ -275,7 +270,7 @@ extension TextView {
     }
 
     func enumerateInsertionPointFramesInViewport(using block: (CGRect) -> Void) {
-        guard let textLayoutManager = textLayoutManager, let viewportRange = textViewportLayoutController?.viewportRange else {
+        guard let viewportRange = textViewportLayoutController.viewportRange else {
             return
         }
 
