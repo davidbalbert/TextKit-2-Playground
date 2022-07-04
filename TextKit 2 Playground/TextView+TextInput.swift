@@ -8,65 +8,6 @@
 import Cocoa
 
 extension TextView {
-    override func keyDown(with event: NSEvent) {
-        guard isEditable, let inputContext = inputContext else { return }
-
-        NSCursor.setHiddenUntilMouseMoves(true)
-
-        if !inputContext.handleEvent(event) {
-            // Not sure handleEvent returns false. Just want to know about it.
-            print("inputContext didn't handle this event:", event)
-        }
-    }
-
-    override func deleteBackward(_ sender: Any?) {
-        delete(direction: .backward, destination: .character)
-    }
-
-    override func deleteForward(_ sender: Any?) {
-        delete(direction: .forward, destination: .character)
-    }
-
-    override func deleteWordBackward(_ sender: Any?) {
-        delete(direction: .backward, destination: .word)
-    }
-
-    override func deleteWordForward(_ sender: Any?) {
-        delete(direction: .forward, destination: .word)
-    }
-
-    override func deleteToBeginningOfLine(_ sender: Any?) {
-        delete(direction: .backward, destination: .line)
-    }
-
-    override func deleteToEndOfLine(_ sender: Any?) {
-        delete(direction: .forward, destination: .line)
-    }
-
-    override func deleteToBeginningOfParagraph(_ sender: Any?) {
-        delete(direction: .backward, destination: .paragraph)
-    }
-
-    override func deleteToEndOfParagraph(_ sender: Any?) {
-        delete(direction: .forward, destination: .paragraph)
-    }
-
-    func delete(direction: NSTextSelectionNavigation.Direction, destination: NSTextSelectionNavigation.Destination) {
-        guard isEditable else { return }
-
-        let deletionRanges = textLayoutManager.textSelections.flatMap { textSelection in
-            textLayoutManager.textSelectionNavigation.deletionRanges(for: textSelection,
-                                                                     direction: direction,
-                                                                     destination: destination,
-                                                                     allowsDecomposition: false)
-        }
-
-        replaceCharacters(in: deletionRanges, with: "")
-    }
-
-    override func insertNewline(_ sender: Any?) {
-        replaceCharacters(in: selectedTextRanges, with: "\n")
-    }
 }
 
 extension TextView: NSTextInputClient {

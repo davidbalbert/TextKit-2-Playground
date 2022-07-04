@@ -14,6 +14,9 @@
 		63558151286912A000C8F14B /* NSAttributedString+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */; };
 		635581532869446200C8F14B /* NSTextRange+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635581522869446200C8F14B /* NSTextRange+Extensions.swift */; };
 		635D1B2F2870F7C100989ED6 /* TextBackgroundLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635D1B2E2870F7C100989ED6 /* TextBackgroundLayout.swift */; };
+		637DD06428735D560026A0CA /* TextView+Drawing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637DD06328735D560026A0CA /* TextView+Drawing.swift */; };
+		637DD06628735EA30026A0CA /* TextView+Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637DD06528735EA30026A0CA /* TextView+Events.swift */; };
+		637DD068287362B20026A0CA /* TextView+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637DD067287362B20026A0CA /* TextView+Actions.swift */; };
 		638ACB97282BD26E0012D282 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638ACB96282BD26E0012D282 /* AppDelegate.swift */; };
 		638ACB99282BD26F0012D282 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 638ACB98282BD26F0012D282 /* Assets.xcassets */; };
 		638ACB9C282BD26F0012D282 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 638ACB9A282BD26F0012D282 /* MainMenu.xib */; };
@@ -58,6 +61,9 @@
 		63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSAttributedString+Extensions.swift"; sourceTree = "<group>"; };
 		635581522869446200C8F14B /* NSTextRange+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSTextRange+Extensions.swift"; sourceTree = "<group>"; };
 		635D1B2E2870F7C100989ED6 /* TextBackgroundLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextBackgroundLayout.swift; sourceTree = "<group>"; };
+		637DD06328735D560026A0CA /* TextView+Drawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextView+Drawing.swift"; sourceTree = "<group>"; };
+		637DD06528735EA30026A0CA /* TextView+Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextView+Events.swift"; sourceTree = "<group>"; };
+		637DD067287362B20026A0CA /* TextView+Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextView+Actions.swift"; sourceTree = "<group>"; };
 		638ACB93282BD26E0012D282 /* TextKit 2 Playground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TextKit 2 Playground.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		638ACB96282BD26E0012D282 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		638ACB98282BD26F0012D282 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -129,24 +135,27 @@
 		638ACB95282BD26E0012D282 /* TextKit 2 Playground */ = {
 			isa = PBXGroup;
 			children = (
+				638ACB9D282BD26F0012D282 /* TextKit_2_Playground.entitlements */,
 				638ACB96282BD26E0012D282 /* AppDelegate.swift */,
 				63921D80285F776D00961F8E /* CGPoint+Hashable.swift */,
 				63921D84285F778D00961F8E /* CGRect+Extensions.swift */,
 				63921D82285F778100961F8E /* CGSize+Hashable.swift */,
+				63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */,
 				63921D7A285E88FE00961F8E /* InsertionPointLayout.swift */,
 				63921D74285E370000961F8E /* NonAnimatingLayer.swift */,
+				63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */,
 				630A736328566BA9007C0522 /* NSRange+Extensions.swift */,
 				635581522869446200C8F14B /* NSTextRange+Extensions.swift */,
-				63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */,
 				63921D78285E7FAF00961F8E /* SelectionLayout.swift */,
-				638ACBBF282BD2CC0012D282 /* TextView.swift */,
-				63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */,
-				63921D882860C0C600961F8E /* TextLayout.swift */,
 				635D1B2E2870F7C100989ED6 /* TextBackgroundLayout.swift */,
+				63921D882860C0C600961F8E /* TextLayout.swift */,
+				638ACBBF282BD2CC0012D282 /* TextView.swift */,
+				637DD067287362B20026A0CA /* TextView+Actions.swift */,
+				637DD06328735D560026A0CA /* TextView+Drawing.swift */,
+				637DD06528735EA30026A0CA /* TextView+Events.swift */,
 				630A735F28553104007C0522 /* TextView+TextInput.swift */,
 				630A736128563BE1007C0522 /* TextView+TextSelection.swift */,
 				63921D7C285EB98A00961F8E /* WeakDictionary.swift */,
-				638ACB9D282BD26F0012D282 /* TextKit_2_Playground.entitlements */,
 				63371573284165FE000CC61F /* Moby Dick.txt */,
 				638ACB98282BD26F0012D282 /* Assets.xcassets */,
 				638ACB9A282BD26F0012D282 /* MainMenu.xib */,
@@ -304,6 +313,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				63921D81285F776D00961F8E /* CGPoint+Hashable.swift in Sources */,
+				637DD06628735EA30026A0CA /* TextView+Events.swift in Sources */,
 				638ACB97282BD26E0012D282 /* AppDelegate.swift in Sources */,
 				63921D7D285EB98A00961F8E /* WeakDictionary.swift in Sources */,
 				63558151286912A000C8F14B /* NSAttributedString+Extensions.swift in Sources */,
@@ -311,9 +321,11 @@
 				63921D83285F778100961F8E /* CGSize+Hashable.swift in Sources */,
 				63921D75285E370000961F8E /* NonAnimatingLayer.swift in Sources */,
 				63BADCB7286E7DAC00396C40 /* CustomInvalidations.swift in Sources */,
+				637DD06428735D560026A0CA /* TextView+Drawing.swift in Sources */,
 				630A736428566BA9007C0522 /* NSRange+Extensions.swift in Sources */,
 				635D1B2F2870F7C100989ED6 /* TextBackgroundLayout.swift in Sources */,
 				63921D85285F778D00961F8E /* CGRect+Extensions.swift in Sources */,
+				637DD068287362B20026A0CA /* TextView+Actions.swift in Sources */,
 				63921D79285E7FAF00961F8E /* SelectionLayout.swift in Sources */,
 				63921D892860C0C600961F8E /* TextLayout.swift in Sources */,
 				63921D7B285E88FE00961F8E /* InsertionPointLayout.swift in Sources */,

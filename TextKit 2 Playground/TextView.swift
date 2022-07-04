@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutControllerDelegate, NSMenuItemValidation {
+class TextView: NSView {
     class func scrollableTextView() -> NSScrollView {
         let textView = Self()
 
@@ -156,89 +156,10 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
     internal var textLayer: CALayer = NonAnimatingLayer()
     internal var insertionPointLayer: CALayer = NonAnimatingLayer()
 
-    private lazy var textBackgroundLayout = TextBackgroundLayout(textView: self, layer: textBackgroundLayer)
-    private lazy var selectionLayout = SelectionLayout(textView: self)
-    private lazy var textLayout = TextLayout(textView: self)
-    private lazy var insertionPointLayout = InsertionPointLayout(textView: self)
-
-    override func layout() {
-        super.layout()
-
-        guard let layer = layer else { return }
-
-        if textBackgroundLayer.superlayer == nil {
-            textBackgroundLayer.anchorPoint = .zero
-            textBackgroundLayer.name = "Text backgrounds"
-            layer.addSublayer(textBackgroundLayer)
-        }
-
-        if selectionLayer.superlayer == nil {
-            selectionLayer.layoutManager = selectionLayout
-
-            selectionLayer.anchorPoint = .zero
-            selectionLayer.name = "Selections"
-            layer.addSublayer(selectionLayer)
-        }
-
-        if textLayer.superlayer == nil {
-            textLayer.layoutManager = textLayout
-
-            textLayer.anchorPoint = .zero
-            textLayer.name = "Text"
-            layer.addSublayer(textLayer)
-        }
-
-        if insertionPointLayer.superlayer == nil {
-            insertionPointLayer.layoutManager = insertionPointLayout
-
-            insertionPointLayer.anchorPoint = .zero
-            insertionPointLayer.name = "Insertion points"
-            layer.addSublayer(insertionPointLayer)
-        }
-
-        // TODO: I think we should be able to do this with an autoresize mask.
-        selectionLayer.bounds = layer.bounds
-        textLayer.bounds = layer.bounds
-        insertionPointLayer.bounds = layer.bounds
-    }
-
-    override func updateLayer() {
-        layer?.backgroundColor = backgroundColor.cgColor
-    }
-
-    func layoutViewport() {
-        textViewportLayoutController.layoutViewport()
-    }
-
-    override func viewDidChangeEffectiveAppearance() {
-        setSelectionNeedsDisplay()
-        setTextNeedsDisplay()
-        setInsertionPointNeedsDisplay()
-    }
-
-    func setSelectionNeedsDisplay() {
-        guard let sublayers = selectionLayer.sublayers else { return }
-
-        for layer in sublayers {
-            layer.setNeedsDisplay()
-        }
-    }
-
-    func setTextNeedsDisplay() {
-        guard let sublayers = textLayer.sublayers else { return }
-
-        for layer in sublayers {
-            layer.setNeedsDisplay()
-        }
-    }
-
-    func setInsertionPointNeedsDisplay() {
-        guard let sublayers = insertionPointLayer.sublayers else { return }
-
-        for layer in sublayers {
-            layer.setNeedsDisplay()
-        }
-    }
+    internal lazy var textBackgroundLayout = TextBackgroundLayout(textView: self, layer: textBackgroundLayer)
+    internal lazy var selectionLayout = SelectionLayout(textView: self)
+    internal lazy var textLayout = TextLayout(textView: self)
+    internal lazy var insertionPointLayout = InsertionPointLayout(textView: self)
 
     func enumerateBackgroundColorFrames(in textLayoutFragment: NSTextLayoutFragment, using block: (CGRect, NSColor) -> Void) {
         guard let textParagraph = textLayoutFragment.textElement as? NSTextParagraph else {
@@ -313,7 +234,7 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         }
     }
 
-    private func updateFrameHeightIfNeeded() {
+    internal func updateFrameHeightIfNeeded() {
         guard let scrollView = enclosingScrollView else {
             return
         }
@@ -362,74 +283,12 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         }
     }
 
-    // MARK: - NSTextViewportLayoutControllerDelegate
-
-    func viewportBounds(for textViewportLayoutController: NSTextViewportLayoutController) -> CGRect {
-        var viewportBounds: CGRect
-        if preparedContentRect.intersects(visibleRect) {
-            viewportBounds = preparedContentRect.union(visibleRect)
-        } else {
-            viewportBounds = visibleRect
-        }
-
-        viewportBounds.size.width = bounds.width
-
-        assert(viewportBounds.minY >= 0)
-
-        return viewportBounds
-    }
-
-    func textViewportLayoutControllerWillLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
-        textBackgroundLayout.textView(self, textViewportLayoutControllerWillLayout: textViewportLayoutController)
-        textLayout.textView(self, textViewportLayoutControllerWillLayout: textViewportLayoutController)
-    }
-
-    func textViewportLayoutController(_ textViewportLayoutController: NSTextViewportLayoutController, configureRenderingSurfaceFor textLayoutFragment: NSTextLayoutFragment) {
-        textBackgroundLayout.textView(self, textViewportLayoutController: textViewportLayoutController, configureRenderingSurfaceFor: textLayoutFragment)
-        textLayout.textView(self, textViewportLayoutController: textViewportLayoutController, configureRenderingSurfaceFor: textLayoutFragment)
-    }
-
-    func textViewportLayoutControllerDidLayout(_ textViewportLayoutController: NSTextViewportLayoutController) {
-        updateFrameHeightIfNeeded()
-    }
-
-    override func cursorUpdate(with event: NSEvent) {
-        if isSelectable {
-            NSCursor.iBeam.set()
-        }
-    }
-
-    // MARK: - First responder
-
-    override var acceptsFirstResponder: Bool {
-        true
-    }
-
-    internal var isFirstResponder: Bool {
-        window?.firstResponder == self
-    }
-
-    internal var windowIsKey: Bool {
-        window?.isKeyWindow ?? false
-    }
-
-    override func becomeFirstResponder() -> Bool {
-        setSelectionNeedsDisplay()
-        updateInsertionPointTimer()
-        return super.becomeFirstResponder()
-    }
-
-    override func resignFirstResponder() -> Bool {
-        setSelectionNeedsDisplay()
-        updateInsertionPointTimer()
-        return super.resignFirstResponder()
-    }
+    // MARK: - View lifecycle callbacks
 
     private var didBecomeKeyObserver: Any?
     private var didResignKeyObserver: Any?
 
-    // TODO: it's possible that viewDidMoveToWindow gets called even when window was just set to nil. If that's the case, we might be able to get rid of viewWillMove(toWindow:) and put all behavior into viewDidMoveToWindow
-    override func viewWillMove(toWindow newWindow: NSWindow?) {
+    override func viewDidMoveToWindow() {
         if let didBecomeKeyObserver = didBecomeKeyObserver {
             NotificationCenter.default.removeObserver(didBecomeKeyObserver)
         }
@@ -437,9 +296,7 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         if let didResignKeyObserver = didResignKeyObserver {
             NotificationCenter.default.removeObserver(didResignKeyObserver)
         }
-    }
 
-    override func viewDidMoveToWindow() {
         guard let window = window else { return }
 
         didBecomeKeyObserver = NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: nil) { [weak self] notification in
@@ -475,7 +332,6 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         replaceCharacters(in: textRange, with: NSAttributedString(string: string))
     }
 
-    // TODO: Maybe we should work with AttributedStrings instead?
     func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString) {
         textContentStorage.performEditingTransaction {
             textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
@@ -508,75 +364,5 @@ class TextView: NSView, NSTextContentStorageDelegate, NSTextViewportLayoutContro
         textContentStorage.performEditingTransaction {
             textStorage.removeAttribute(name, range: NSRange(textRange, in: textContentStorage))
         }
-    }
-
-    // MARK: - Pasteboard
-
-    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        switch menuItem.action {
-        case #selector(selectAll(_:)):
-            return isSelectable
-        case #selector(copy(_:)):
-            return isSelectable && hasSelectedText
-        case #selector(cut(_:)):
-            return isEditable && hasSelectedText
-        case #selector(paste(_:)):
-            return isEditable && NSPasteboard.general.canReadObject(forClasses: pastableTypes)
-        default:
-            return true
-        }
-    }
-
-    class override var defaultMenu: NSMenu? {
-        let menu = NSMenu()
-
-        menu.addItem(withTitle: "Cut", action: #selector(cut(_ :)), keyEquivalent: "")
-        menu.addItem(withTitle: "Copy", action: #selector(copy(_ :)), keyEquivalent: "")
-        menu.addItem(withTitle: "Paste", action: #selector(paste(_ :)), keyEquivalent: "")
-
-        return menu
-    }
-
-    private var hasSelectedText: Bool {
-        nonEmptySelectedTextRanges.count > 0
-    }
-
-    @objc func cut(_ sender: Any) {
-        copy(sender)
-
-        replaceCharacters(in: nonEmptySelectedTextRanges, with: "")
-    }
-
-    @objc func copy(_ sender: Any) {
-        let nsRanges = nonEmptySelectedTextRanges.compactMap { NSRange($0, in: textContentStorage) }
-        let attributedStrings = nsRanges.map { textStorage.attributedSubstring(from: $0) }
-
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.writeObjects(attributedStrings)
-    }
-
-    private var pastableTypes: [AnyClass] = [NSAttributedString.self, NSString.self]
-
-    @objc func paste(_ sender: Any) {
-        guard let objects = NSPasteboard.general.readObjects(forClasses: pastableTypes) else { return }
-
-        switch objects.first {
-        case let attributedString as NSAttributedString:
-            replaceCharacters(in: selectedTextRanges, with: attributedString)
-        case let string as String:
-            replaceCharacters(in: selectedTextRanges, with: string)
-        default:
-            break
-        }
-    }
-
-    @objc override func selectAll(_ sender: Any?) {
-        guard isSelectable else { return }
-
-        textLayoutManager.textSelections = [NSTextSelection(range: textLayoutManager.documentRange, affinity: .downstream, granularity: .character)]
-        
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
     }
 }
