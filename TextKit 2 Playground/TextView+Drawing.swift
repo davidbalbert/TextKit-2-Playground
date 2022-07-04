@@ -15,6 +15,8 @@ extension TextView: NSTextViewportLayoutControllerDelegate {
 
         if textBackgroundLayer.superlayer == nil {
             textBackgroundLayer.anchorPoint = .zero
+            textBackgroundLayer.bounds = layer.bounds
+            textBackgroundLayer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
             textBackgroundLayer.name = "Text backgrounds"
             layer.addSublayer(textBackgroundLayer)
         }
@@ -23,6 +25,8 @@ extension TextView: NSTextViewportLayoutControllerDelegate {
             selectionLayer.layoutManager = selectionLayout
 
             selectionLayer.anchorPoint = .zero
+            selectionLayer.bounds = layer.bounds
+            selectionLayer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
             selectionLayer.name = "Selections"
             layer.addSublayer(selectionLayer)
         }
@@ -31,6 +35,8 @@ extension TextView: NSTextViewportLayoutControllerDelegate {
             textLayer.layoutManager = textLayout
 
             textLayer.anchorPoint = .zero
+            textLayer.bounds = layer.bounds
+            textLayer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
             textLayer.name = "Text"
             layer.addSublayer(textLayer)
         }
@@ -39,14 +45,11 @@ extension TextView: NSTextViewportLayoutControllerDelegate {
             insertionPointLayer.layoutManager = insertionPointLayout
 
             insertionPointLayer.anchorPoint = .zero
+            insertionPointLayer.bounds = layer.bounds
+            insertionPointLayer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
             insertionPointLayer.name = "Insertion points"
             layer.addSublayer(insertionPointLayer)
         }
-
-        // TODO: I think we should be able to do this with an autoresize mask.
-        selectionLayer.bounds = layer.bounds
-        textLayer.bounds = layer.bounds
-        insertionPointLayer.bounds = layer.bounds
     }
 
     override func updateLayer() {

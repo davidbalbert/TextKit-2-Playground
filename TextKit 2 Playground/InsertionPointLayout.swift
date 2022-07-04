@@ -21,7 +21,6 @@ class InsertionPointLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLa
 
         guard let textView = textView else { return }
 
-        // TODO: use layer.sublayers.difference? That could be fun.
         layer.sublayers = nil
 
         textView.enumerateInsertionPointFramesInViewport { insertionPointFrame in

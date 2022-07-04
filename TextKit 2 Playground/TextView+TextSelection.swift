@@ -8,6 +8,40 @@
 import Cocoa
 
 extension TextView {
+    // TODO: make this user setable
+    var textSelectionColor: NSColor {
+        if windowIsKey && isFirstResponder {
+            return NSColor.selectedTextBackgroundColor
+        } else {
+            return NSColor.unemphasizedSelectedTextBackgroundColor
+        }
+    }
+
+    var textSelections: [NSTextSelection] {
+        get {
+            textLayoutManager.textSelections
+        }
+        set {
+            textLayoutManager.textSelections = newValue
+        }
+    }
+
+    var selectedTextRanges: [NSTextRange] {
+        textSelections.flatMap(\.textRanges)
+    }
+
+    var nonEmptySelectedTextRanges: [NSTextRange] {
+        selectedTextRanges.filter { !$0.isEmpty }
+    }
+
+    var insertionPointTextRanges: [NSTextRange] {
+        selectedTextRanges.filter { $0.isEmpty }
+    }
+
+    internal var hasSelectedText: Bool {
+        nonEmptySelectedTextRanges.count > 0
+    }
+
     func startSelection(at point: CGPoint) {
         let navigation = textLayoutManager.textSelectionNavigation
 
@@ -63,34 +97,9 @@ extension TextView {
     }
 
     func removeZeroLengthSelections() {
-        textLayoutManager.textSelections.removeAll { textSelection in
+        textSelections.removeAll { textSelection in
             textSelection.textRanges.allSatisfy { $0.isEmpty }
         }
-    }
-
-    var textSelectionColor: NSColor {
-        if windowIsKey && isFirstResponder {
-            return NSColor.selectedTextBackgroundColor
-        } else {
-            return NSColor.unemphasizedSelectedTextBackgroundColor
-        }
-    }
-
-    var textSelections: [NSTextSelection] {
-        get {
-            textLayoutManager.textSelections
-        }
-        set {
-            textLayoutManager.textSelections = newValue
-        }
-    }
-
-    var selectedTextRanges: [NSTextRange] {
-        textSelections.flatMap(\.textRanges)
-    }
-
-    var nonEmptySelectedTextRanges: [NSTextRange] {
-        selectedTextRanges.filter { !$0.isEmpty }
     }
 
     func enumerateSelectionFramesInViewport(using block: (CGRect) -> Void) {
@@ -106,14 +115,6 @@ extension TextView {
                 return true
             }
         }
-    }
-
-    var insertionPointTextRanges: [NSTextRange] {
-        selectedTextRanges.filter { $0.isEmpty }
-    }
-
-    internal var hasSelectedText: Bool {
-        nonEmptySelectedTextRanges.count > 0
     }
 
     func enumerateInsertionPointFramesInViewport(using block: (CGRect) -> Void) {
