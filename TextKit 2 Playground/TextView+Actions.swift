@@ -14,7 +14,7 @@ extension TextView: NSMenuItemValidation {
     // MARK: - Text input
 
     override func insertNewline(_ sender: Any?) {
-        replaceCharacters(in: selectedTextRanges, with: "\n")
+        replaceCharacters(in: textSelections, with: "\n", unmarkText: true)
     }
 
     // MARK: - Text deletion
@@ -220,7 +220,7 @@ extension TextView: NSMenuItemValidation {
     @objc func cut(_ sender: Any) {
         copy(sender)
 
-        replaceCharacters(in: nonEmptySelectedTextRanges, with: "")
+        replaceCharacters(in: nonEmptyTextSelections, with: "", unmarkText: true)
     }
 
     @objc func copy(_ sender: Any) {
@@ -235,16 +235,10 @@ extension TextView: NSMenuItemValidation {
     private var pastableTypes: [AnyClass] { [NSAttributedString.self, NSString.self] }
 
     @objc func paste(_ sender: Any) {
-        guard let objects = NSPasteboard.general.readObjects(forClasses: pastableTypes) else { return }
+        guard let object = NSPasteboard.general.readObjects(forClasses: pastableTypes)?.first else { return }
+        guard let attributedString = NSAttributedString(anyString: object) else { return }
 
-        switch objects.first {
-        case let attributedString as NSAttributedString:
-            replaceCharacters(in: selectedTextRanges, with: attributedString)
-        case let string as String:
-            replaceCharacters(in: selectedTextRanges, with: string)
-        default:
-            break
-        }
+        replaceCharacters(in: textSelections, with: attributedString, unmarkText: true)
     }
 
     @objc override func selectAll(_ sender: Any?) {

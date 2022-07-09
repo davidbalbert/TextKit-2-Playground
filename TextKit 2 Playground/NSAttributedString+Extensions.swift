@@ -12,6 +12,16 @@ extension NSAttributedString.Key {
 }
 
 extension NSAttributedString {
+    convenience init?(anyString string: Any) {
+        if let string = string as? String {
+            self.init(string: string)
+        } else if let attributedString = string as? NSAttributedString {
+            self.init(attributedString: attributedString)
+        } else {
+            return nil
+        }
+    }
+
     func replacingAttribute(_ oldName: NSAttributedString.Key, with newName: NSAttributedString.Key) -> NSAttributedString {
         let s = NSMutableAttributedString(attributedString: self)
         let range = NSRange(location: 0, length: length)

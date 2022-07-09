@@ -26,16 +26,28 @@ extension TextView {
         }
     }
 
+    var nonEmptyTextSelections: [NSTextSelection] {
+        textSelections.filter { textSelection in
+            textSelection.textRanges.contains { !$0.isEmpty }
+        }
+    }
+
+    var insertionPointTextSelections: [NSTextSelection] {
+        textSelections.filter { textSelection in
+            textSelection.textRanges.allSatisfy { $0.isEmpty }
+        }
+    }
+
     var selectedTextRanges: [NSTextRange] {
         textSelections.flatMap(\.textRanges)
     }
 
     var nonEmptySelectedTextRanges: [NSTextRange] {
-        selectedTextRanges.filter { !$0.isEmpty }
+        nonEmptyTextSelections.flatMap(\.textRanges)
     }
 
     var insertionPointTextRanges: [NSTextRange] {
-        selectedTextRanges.filter { $0.isEmpty }
+        insertionPointTextSelections.flatMap(\.textRanges)
     }
 
     internal var hasSelectedText: Bool {
@@ -49,7 +61,7 @@ extension TextView {
                                                    inContainerAt: textLayoutManager.documentRange.location,
                                                    anchors: [],
                                                    modifiers: [],
-                                                   selecting: false,
+                                                   selecting: true,
                                                    bounds: .zero)
     }
 
@@ -60,7 +72,7 @@ extension TextView {
                                                    inContainerAt: textLayoutManager.documentRange.location,
                                                    anchors: textSelections,
                                                    modifiers: .extend,
-                                                   selecting: false,
+                                                   selecting: true,
                                                    bounds: .zero)
     }
 
@@ -93,7 +105,7 @@ extension TextView {
                                                                      allowsDecomposition: false)
         }
 
-        replaceCharacters(in: deletionRanges, with: "")
+        deleteCharacters(in: deletionRanges)
     }
 
     func removeZeroLengthSelections() {

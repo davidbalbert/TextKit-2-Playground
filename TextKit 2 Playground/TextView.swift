@@ -117,8 +117,6 @@ class TextView: NSView, NSTextContentStorageDelegate {
         }
     }
 
-    internal var markedRanges: [NSTextRange] = []
-
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         commonInit()
@@ -273,25 +271,61 @@ class TextView: NSView, NSTextContentStorageDelegate {
         setInsertionPointNeedsDisplay()
     }
 
-    // MARK: - Character manipulation
-
-    func replaceCharacters(in textRanges: [NSTextRange], with string: String) {
-        replaceCharacters(in: textRanges, with: NSAttributedString(string: string))
-    }
-
-    func replaceCharacters(in textRanges: [NSTextRange], with attributedString: NSAttributedString) {
-        textContentStorage.performEditingTransaction {
-            for textRange in textRanges {
-                replaceCharacters(in: textRange, with: attributedString)
-            }
-        }
-    }
+    // MARK: - Character manipulation (public methods)
 
     func replaceCharacters(in textRange: NSTextRange, with string: String) {
         replaceCharacters(in: textRange, with: NSAttributedString(string: string))
     }
 
     func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString) {
+        replaceCharacters(in: textRange, with: attributedString, unmarkText: true)
+    }
+
+    // MARK: - Character manipulation (private methods)
+
+    internal func replaceCharacters(in textSelections: [NSTextSelection], with string: String, unmarkText: Bool) {
+        replaceCharacters(in: textSelections, with: NSAttributedString(string: string), unmarkText: unmarkText)
+    }
+
+    internal func replaceCharacters(in textSelections: [NSTextSelection], with attributedString: NSAttributedString, unmarkText: Bool) {
+        textContentStorage.performEditingTransaction {
+            for textSelection in textSelections {
+                replaceCharacters(in: textSelection, with: attributedString, unmarkText: unmarkText)
+            }
+        }
+    }
+
+    internal func replaceCharacters(in textSelection: NSTextSelection, with attributedString: NSAttributedString, unmarkText: Bool) {
+        textContentStorage.performEditingTransaction {
+            if let firstTextRange = textSelection.markedTextRange ?? textSelection.textRanges.first {
+                replaceCharacters(in: firstTextRange, with: attributedString, unmarkText: unmarkText)
+            }
+
+            for textRange in textSelection.textRanges.dropFirst() {
+                replaceCharacters(in: textRange, with: NSAttributedString(""), unmarkText: unmarkText)
+            }
+        }
+    }
+
+    func deleteCharacters(in deletionTextRanges: [NSTextRange]) {
+        textContentStorage.performEditingTransaction {
+            for textRange in deletionTextRanges {
+                replaceCharacters(in: textRange, with: NSAttributedString(string: ""), unmarkText: true)
+            }
+        }
+
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
+
+        // TODO: defer this to next tick of the runloop somehow
+        updateInsertionPointTimer()
+
+        unmarkText()
+        inputContext?.invalidateCharacterCoordinates()
+    }
+
+    internal func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString, unmarkText shouldUnmark: Bool) {
         textContentStorage.performEditingTransaction {
             textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
         }
@@ -299,7 +333,14 @@ class TextView: NSView, NSTextContentStorageDelegate {
         textLayer.setNeedsLayout()
         selectionLayer.setNeedsLayout()
         insertionPointLayer.setNeedsLayout()
+
+        // TODO: defer this to next tick of the runloop somehow
         updateInsertionPointTimer()
+
+        if shouldUnmark {
+            unmarkText()
+        }
+
         inputContext?.invalidateCharacterCoordinates()
     }
 

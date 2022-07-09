@@ -14,19 +14,18 @@ extension TextView: NSTextInputClient {
     func insertText(_ string: Any, replacementRange: NSRange) {
         guard isEditable else { return }
 
+        print("insertText(_:replacementRange:)", string, replacementRange)
+
         // I seem to always get {NSNotFound, 0} for replacementRange. For now, I'm
         // going to ignore replacement range, but if I get a real replacementRange,
         // I want to know about it.
         assert(replacementRange == .notFound)
 
-        switch string {
-        case let attributedString as NSAttributedString:
-            replaceCharacters(in: selectedTextRanges, with: attributedString)
-        case let string as String:
-            replaceCharacters(in: selectedTextRanges, with: string)
-        default:
-            break
+        guard let attributedString = NSAttributedString(anyString: string) else {
+            return
         }
+
+        replaceCharacters(in: textSelections, with: attributedString, unmarkText: true)
     }
 
     override func doCommand(by selector: Selector) {
@@ -40,17 +39,59 @@ extension TextView: NSTextInputClient {
     func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
         print("setMarkedText", string, selectedRange, replacementRange)
 
-        guard let textRange = NSTextRange(selectedRange, in: textContentStorage) else {
+        assert(replacementRange == .notFound)
+
+        guard let attributedString = NSAttributedString(anyString: string) else {
             return
         }
 
-        markedRanges = [textRange]
+        print(textSelections.first!.textRanges.first!)
+
+        let replacementSelections = textSelections
+
+        let markedSelections: [NSTextSelection]
+
+
+        if attributedString.length == 0 {
+            replaceCharacters(in: replacementSelections, with: "", unmarkText: true)
+            unmarkText()
+            markedSelections = textSelections
+        } else {
+            markedSelections = replacementSelections.compactMap { $0.mark(attributedString.length, selectedRange: selectedRange, in: textContentStorage) }
+            textSelections = markedSelections
+            replaceCharacters(in: replacementSelections, with: attributedString, unmarkText: false)
+        }
+
+
+        textSelections = markedSelections.compactMap { textSelection in
+            guard let firstTextRange = textSelection.textRanges.first else {
+                return nil
+            }
+
+            guard let location = textContentStorage.location(firstTextRange.location, offsetBy: selectedRange.location) else {
+                return nil
+            }
+
+            guard let end = textContentStorage.location(location, offsetBy: selectedRange.length) else {
+                return nil
+            }
+
+            guard let textRange = NSTextRange(location: location, end: end) else {
+                return nil
+            }
+
+            print(firstTextRange, (textSelection as! MarkedTextSelection).markedTextRange, textRange)
+
+            return textSelection.withTextRanges([textRange])
+        }
+
+
     }
 
     func unmarkText() {
         print("unmarkText")
-        markedRanges = []
-
+        textSelections = textSelections.map(\.unmarked)
+        inputContext?.discardMarkedText()
     }
 
     func selectedRange() -> NSRange {
@@ -70,8 +111,7 @@ extension TextView: NSTextInputClient {
     }
 
     func hasMarkedText() -> Bool {
-        print("hasMarkedText", !markedRanges.isEmpty)
-        return !markedRanges.isEmpty
+        textSelections.contains(where: \.isMarked)
     }
 
     func attributedSubstring(forProposedRange range: NSRange, actualRange: NSRangePointer?) -> NSAttributedString? {
