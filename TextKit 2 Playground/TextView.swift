@@ -51,6 +51,7 @@ class TextView: NSView, NSTextContentStorageDelegate {
     internal lazy var insertionPointLayout = InsertionPointLayout(textView: self)
 
     var typingAttributes: [NSAttributedString.Key : Any] = [.foregroundColor: NSColor.black]
+    var markedTextAttributes: [NSAttributedString.Key : Any] = [.backgroundColor: NSColor.systemYellow]
 
     @Invalidating(.display) var backgroundColor: NSColor = .white {
         // TODO: Maybe enforce the invariant that no text has a background color that the document has. All that text should have a transparent background color.
@@ -135,6 +136,7 @@ class TextView: NSView, NSTextContentStorageDelegate {
 
         textContentStorage.addTextLayoutManager(textLayoutManager)
         textContentStorage.primaryTextLayoutManager = textLayoutManager
+        textContentStorage.delegate = self
 
         textLayoutManager.textContainer = textContainer
 
@@ -225,13 +227,26 @@ class TextView: NSView, NSTextContentStorageDelegate {
     // MARK: - NSTextContentStorageDelegate
 
     func textContentStorage(_ textContentStorage: NSTextContentStorage, textParagraphWith range: NSRange) -> NSTextParagraph? {
-        if textStorage.containsAttribute(.backgroundColor, in: range) {
-            let attributedString = textStorage.attributedSubstring(from: range).replacingAttribute(.backgroundColor, with: .undrawnBackgroundColor)
+        // TODO: Right now we're making mutable copies of every paragraph. This is a bad idea. We should only make mutable copies of paragraphs where we need to modify the underlying string
 
-            return NSTextParagraph(attributedString: attributedString)
-        } else {
-            return nil
+        let attributedString = NSMutableAttributedString(attributedString: textStorage.attributedSubstring(from: range))
+        attributedString.replaceAttribute(NSAttributedString.Key.backgroundColor, with: .undrawnBackgroundColor)
+
+        let markedRanges: [NSRange] = textSelections.compactMap { textSelection in
+            guard let markedTextRange = textSelection.markedTextRange else {
+                return nil
+            }
+
+            return NSRange(markedTextRange, in: textContentStorage)
         }
+
+        let markedRangesInParagraph = markedRanges.compactMap { $0.intersection(range) }
+
+        for markedRange in markedRangesInParagraph {
+            attributedString.setAttributes(markedTextAttributes, range: markedRange)
+        }
+
+        return NSTextParagraph(attributedString: attributedString)
     }
 
     // MARK: - View lifecycle callbacks
