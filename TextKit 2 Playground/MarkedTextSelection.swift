@@ -30,8 +30,4 @@ class MarkedTextSelection: NSTextSelection {
     override var unmarked: NSTextSelection {
         NSTextSelection(textRanges, affinity: affinity, granularity: granularity)
     }
-
-    override func withTextRanges(_ textRanges: [NSTextRange]) -> NSTextSelection {
-        return MarkedTextSelection(textRanges, affinity: affinity, granularity: granularity, markedRange: markedTextRange)
-    }
 }

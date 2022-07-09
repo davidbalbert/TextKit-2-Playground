@@ -49,43 +49,15 @@ extension TextView: NSTextInputClient {
 
         let replacementSelections = textSelections
 
-        let markedSelections: [NSTextSelection]
-
-
         if attributedString.length == 0 {
             replaceCharacters(in: replacementSelections, with: "", unmarkText: true)
             unmarkText()
-            markedSelections = textSelections
         } else {
-            markedSelections = replacementSelections.compactMap { $0.mark(attributedString.length, selectedRange: selectedRange, in: textContentStorage) }
-            textSelections = markedSelections
+            textSelections = replacementSelections.compactMap { $0.mark(attributedString, selectedRange: selectedRange, in: textContentStorage) }
             replaceCharacters(in: replacementSelections, with: attributedString, unmarkText: false)
         }
 
-
-        textSelections = markedSelections.compactMap { textSelection in
-            guard let firstTextRange = textSelection.textRanges.first else {
-                return nil
-            }
-
-            guard let location = textContentStorage.location(firstTextRange.location, offsetBy: selectedRange.location) else {
-                return nil
-            }
-
-            guard let end = textContentStorage.location(location, offsetBy: selectedRange.length) else {
-                return nil
-            }
-
-            guard let textRange = NSTextRange(location: location, end: end) else {
-                return nil
-            }
-
-            print(firstTextRange, (textSelection as! MarkedTextSelection).markedTextRange, textRange)
-
-            return textSelection.withTextRanges([textRange])
-        }
-
-
+        inputContext?.invalidateCharacterCoordinates()
     }
 
     func unmarkText() {

@@ -20,25 +20,19 @@ extension NSTextSelection {
         nil
     }
 
-    func mark(_ length: Int, selectedRange: NSRange, in textElementProvider: NSTextElementProvider) -> MarkedTextSelection? {
-        guard let textRange = textRanges.first else {
+    func mark(_ markedString: NSAttributedString, selectedRange: NSRange, in textElementProvider: NSTextElementProvider) -> MarkedTextSelection? {
+        guard let firstTextRange = textRanges.first else {
             return nil
         }
 
-        let location = textRange.location
+        let markLocation = firstTextRange.location
+        guard let markEnd = textElementProvider.location?(markLocation, offsetBy: markedString.length) else { return nil }
+        guard let markedRange = NSTextRange(location: markLocation, end: markEnd) else { return nil }
 
-        guard let end = textElementProvider.location?(location, offsetBy: length) else {
-            return nil
-        }
+        guard let selectionLocation = textElementProvider.location?(firstTextRange.location, offsetBy: selectedRange.location) else { return nil }
+        guard let selectionEnd = textElementProvider.location?(selectionLocation, offsetBy: selectedRange.length) else { return nil }
+        guard let selectedRange = NSTextRange(location: selectionLocation, end: selectionEnd) else { return nil}
 
-        guard let markedRange = NSTextRange(location: location, end: end) else {
-            return nil
-        }
-
-        return MarkedTextSelection(textRanges, affinity: affinity, granularity: granularity, markedRange: markedRange)
-    }
-
-    @objc func withTextRanges(_ textRanges: [NSTextRange]) -> NSTextSelection {
-        return NSTextSelection(textRanges, affinity: affinity, granularity: granularity)
+        return MarkedTextSelection([selectedRange], affinity: affinity, granularity: granularity, markedRange: markedRange)
     }
 }
