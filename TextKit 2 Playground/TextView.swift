@@ -227,24 +227,18 @@ class TextView: NSView, NSTextContentStorageDelegate {
     // MARK: - NSTextContentStorageDelegate
 
     func textContentStorage(_ textContentStorage: NSTextContentStorage, textParagraphWith range: NSRange) -> NSTextParagraph? {
-        // TODO: Right now we're making mutable copies of every paragraph. This is a bad idea. We should only make mutable copies of paragraphs where we need to modify the underlying string
+        let markedRanges = markedTextRanges.compactMap { NSRange($0, in: textContentStorage).intersection(range) }
+
+        if markedRanges.isEmpty && !textStorage.containsAttribute(.backgroundColor, in: range) {
+            return nil
+        }
 
         let attributedString = NSMutableAttributedString(attributedString: textStorage.attributedSubstring(from: range))
-        attributedString.replaceAttribute(NSAttributedString.Key.backgroundColor, with: .undrawnBackgroundColor)
-
-        let markedRanges: [NSRange] = textSelections.compactMap { textSelection in
-            guard let markedTextRange = textSelection.markedTextRange else {
-                return nil
-            }
-
-            return NSRange(markedTextRange, in: textContentStorage)
-        }
-
-        let markedRangesInParagraph = markedRanges.compactMap { $0.intersection(range) }
-
-        for markedRange in markedRangesInParagraph {
+        for markedRange in markedRanges {
             attributedString.setAttributes(markedTextAttributes, range: markedRange)
         }
+
+        attributedString.replaceAttribute(NSAttributedString.Key.backgroundColor, with: .undrawnBackgroundColor)
 
         return NSTextParagraph(attributedString: attributedString)
     }

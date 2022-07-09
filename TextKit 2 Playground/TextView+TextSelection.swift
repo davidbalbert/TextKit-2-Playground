@@ -50,6 +50,10 @@ extension TextView {
         insertionPointTextSelections.flatMap(\.textRanges)
     }
 
+    var markedTextRanges: [NSTextRange] {
+        textSelections.compactMap(\.markedTextRange)
+    }
+
     internal var hasSelectedText: Bool {
         nonEmptySelectedTextRanges.count > 0
     }
