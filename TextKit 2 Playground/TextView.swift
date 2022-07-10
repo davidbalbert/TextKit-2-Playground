@@ -55,8 +55,7 @@ class TextView: NSView, NSTextContentStorageDelegate {
     ]
 
     var markedTextAttributes: [NSAttributedString.Key : Any] = [
-        // TODO: This is gross. Is there another way?
-        .backgroundColor: NSTextView(frame: .zero, textContainer: nil).markedTextAttributes?[.backgroundColor] as? NSColor ?? .systemYellow,
+        .backgroundColor: NSColor.systemYellow.withSystemEffect(.disabled),
     ]
 
     @Invalidating(.display) var backgroundColor: NSColor = .white {
