@@ -45,8 +45,6 @@ extension TextView: NSTextInputClient {
             return
         }
 
-        print(textSelections.first!.textRanges.first!)
-
         let replacementSelections = textSelections
 
         if attributedString.length == 0 {

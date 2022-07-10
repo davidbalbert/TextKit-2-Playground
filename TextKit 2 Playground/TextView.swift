@@ -50,8 +50,14 @@ class TextView: NSView, NSTextContentStorageDelegate {
     internal lazy var textLayout = TextLayout(textView: self)
     internal lazy var insertionPointLayout = InsertionPointLayout(textView: self)
 
-    var typingAttributes: [NSAttributedString.Key : Any] = [.foregroundColor: NSColor.black]
-    var markedTextAttributes: [NSAttributedString.Key : Any] = [.backgroundColor: NSColor.systemYellow]
+    var typingAttributes: [NSAttributedString.Key : Any] = [
+        .foregroundColor: NSColor.black,
+    ]
+
+    var markedTextAttributes: [NSAttributedString.Key : Any] = [
+        // TODO: This is gross. Is there another way?
+        .backgroundColor: NSTextView(frame: .zero, textContainer: nil).markedTextAttributes?[.backgroundColor] as? NSColor ?? .systemYellow,
+    ]
 
     @Invalidating(.display) var backgroundColor: NSColor = .white {
         // TODO: Maybe enforce the invariant that no text has a background color that the document has. All that text should have a transparent background color.
@@ -234,7 +240,9 @@ class TextView: NSView, NSTextContentStorageDelegate {
         }
 
         let attributedString = NSMutableAttributedString(attributedString: textStorage.attributedSubstring(from: range))
-        for markedRange in markedRanges {
+        let normalizedMarkedRanges = markedRanges.compactMap { $0.offset(by: -range.location) }
+
+        for markedRange in normalizedMarkedRanges {
             attributedString.setAttributes(markedTextAttributes, range: markedRange)
         }
 
