@@ -11,9 +11,9 @@ extension TextView {
     // TODO: make this user setable
     var textSelectionColor: NSColor {
         if windowIsKey && isFirstResponder {
-            return NSColor.selectedTextBackgroundColor
+            return .selectedTextBackgroundColor
         } else {
-            return NSColor.unemphasizedSelectedTextBackgroundColor
+            return .unemphasizedSelectedTextBackgroundColor
         }
     }
 
