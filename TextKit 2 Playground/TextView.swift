@@ -289,94 +289,83 @@ class TextView: NSView, NSTextContentStorageDelegate {
 
     // MARK: - Character manipulation (public methods)
 
-    func replaceCharacters(in textRange: NSTextRange, with string: String) {
+    public func replaceCharacters(in textRange: NSTextRange, with string: String) {
         replaceCharacters(in: textRange, with: NSAttributedString(string: string))
     }
 
-    func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString) {
-        replaceCharacters(in: textRange, with: attributedString, unmarkText: true)
-    }
-
-    // MARK: - Character manipulation (private methods)
-
-    internal func replaceCharacters(in textSelections: [NSTextSelection], with string: String, unmarkText: Bool) {
-        replaceCharacters(in: textSelections, with: NSAttributedString(string: string), unmarkText: unmarkText)
-    }
-
-    internal func replaceCharacters(in textSelections: [NSTextSelection], with attributedString: NSAttributedString, unmarkText: Bool) {
+    public func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString) {
         textContentStorage.performEditingTransaction {
-            for textSelection in textSelections {
-                replaceCharacters(in: textSelection, with: attributedString, unmarkText: unmarkText)
-            }
-        }
-    }
-
-    internal func replaceCharacters(in textSelection: NSTextSelection, with attributedString: NSAttributedString, unmarkText: Bool) {
-        textContentStorage.performEditingTransaction {
-            if let firstTextRange = textSelection.markedTextRange ?? textSelection.textRanges.first {
-                replaceCharacters(in: firstTextRange, with: attributedString, unmarkText: unmarkText)
-            }
-
-            for textRange in textSelection.textRanges.dropFirst() {
-                replaceCharacters(in: textRange, with: NSAttributedString(""), unmarkText: unmarkText)
-            }
-        }
-    }
-
-    func deleteCharacters(in deletionTextRanges: [NSTextRange]) {
-        textContentStorage.performEditingTransaction {
-            for textRange in deletionTextRanges {
-                replaceCharacters(in: textRange, with: NSAttributedString(string: ""), unmarkText: true)
-            }
+            apply(.replace(textRange: textRange, attributedString: attributedString))
         }
 
+        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
+        // TODO: Also, can these be replaced with needsLayout = true
         textLayer.setNeedsLayout()
         selectionLayer.setNeedsLayout()
         insertionPointLayer.setNeedsLayout()
 
-        // TODO: defer this to next tick of the runloop somehow
         updateInsertionPointTimer()
 
         unmarkText()
         inputContext?.invalidateCharacterCoordinates()
     }
 
-    internal func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString, unmarkText shouldUnmark: Bool) {
-        textContentStorage.performEditingTransaction {
+    // MARK: - Character manipulation (private methods)
+
+    func changes(replacing textSelections: [NSTextSelection], with string: String) -> [TextChange] {
+        changes(replacing: textSelections, with: NSAttributedString(string: string))
+    }
+
+    func changes(replacing textSelections: [NSTextSelection], with attributedString: NSAttributedString) -> [TextChange] {
+        var changes: [TextChange] = []
+
+        for textSelection in textSelections {
+            if let firstTextRange = textSelection.markedTextRange ?? textSelection.textRanges.first {
+                changes.append(.replace(textRange: firstTextRange, attributedString: attributedString))
+            }
+
+            for textRange in textSelection.textRanges.dropFirst() {
+                changes.append(.delete(textRange: textRange))
+            }
+        }
+
+        return changes
+    }
+
+    func changes(deleting textSelections: [NSTextSelection]) -> [TextChange] {
+        changes(deleting: textSelections.flatMap(\.textRanges))
+    }
+
+    func changes(deleting textRanges: [NSTextRange]) -> [TextChange] {
+        textRanges.map { .delete(textRange: $0) }
+    }
+
+    func apply(_ change: TextChange) {
+        switch change {
+        case .replace(let textRange, let attributedString):
             textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
+        case .delete(let textRange):
+            textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: "")
         }
-
-        textLayer.setNeedsLayout()
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
-
-        // TODO: defer this to next tick of the runloop somehow
-        updateInsertionPointTimer()
-
-        if shouldUnmark {
-            unmarkText()
-        }
-
-        inputContext?.invalidateCharacterCoordinates()
     }
 
     // MARK: - Attribute manipulation
 
-    internal func setAttributesForDocumentRange(_ attrs: [NSAttributedString.Key : Any]?) {
+    func setAttributesForDocumentRange(_ attrs: [NSAttributedString.Key : Any]?) {
         setAttributes(attrs, textRange: textContentStorage.documentRange)
     }
 
-    internal func setAttributes(_ attrs: [NSAttributedString.Key : Any]?, textRange: NSTextRange) {
+    func setAttributes(_ attrs: [NSAttributedString.Key : Any]?, textRange: NSTextRange) {
         textContentStorage.performEditingTransaction {
             textStorage.setAttributes(attrs, range: NSRange(textRange, in: textContentStorage))
         }
     }
 
-    internal func removeAttributeForDocumentRange(_ name: NSAttributedString.Key) {
+    func removeAttributeForDocumentRange(_ name: NSAttributedString.Key) {
         removeAttribute(name, textRange: textContentStorage.documentRange)
     }
 
-    internal func removeAttribute(_ name: NSAttributedString.Key, textRange: NSTextRange) {
+    func removeAttribute(_ name: NSAttributedString.Key, textRange: NSTextRange) {
         textContentStorage.performEditingTransaction {
             textStorage.removeAttribute(name, range: NSRange(textRange, in: textContentStorage))
         }

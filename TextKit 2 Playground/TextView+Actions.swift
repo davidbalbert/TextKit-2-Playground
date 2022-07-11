@@ -14,7 +14,22 @@ extension TextView: NSMenuItemValidation {
     // MARK: - Text input
 
     override func insertNewline(_ sender: Any?) {
-        replaceCharacters(in: textSelections, with: "\n", unmarkText: true)
+        textContentStorage.performEditingTransaction {
+            for change in changes(replacing: textSelections, with: "\n") {
+                apply(change)
+            }
+        }
+
+        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
+        // TODO: Also, can these be replaced with needsLayout = true
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
+
+        updateInsertionPointTimer()
+
+        unmarkText()
+        inputContext?.invalidateCharacterCoordinates()
     }
 
     // MARK: - Text deletion
@@ -220,7 +235,22 @@ extension TextView: NSMenuItemValidation {
     @objc func cut(_ sender: Any) {
         copy(sender)
 
-        replaceCharacters(in: nonEmptyTextSelections, with: "", unmarkText: true)
+        textContentStorage.performEditingTransaction {
+            for change in changes(replacing: textSelections, with: "") {
+                apply(change)
+            }
+        }
+
+        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
+        // TODO: Also, can these be replaced with needsLayout = true
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
+
+        updateInsertionPointTimer()
+
+        unmarkText()
+        inputContext?.invalidateCharacterCoordinates()
     }
 
     @objc func copy(_ sender: Any) {
@@ -238,7 +268,22 @@ extension TextView: NSMenuItemValidation {
         guard let object = NSPasteboard.general.readObjects(forClasses: pastableTypes)?.first else { return }
         guard let attributedString = NSAttributedString(anyString: object) else { return }
 
-        replaceCharacters(in: textSelections, with: attributedString, unmarkText: true)
+        textContentStorage.performEditingTransaction {
+            for change in changes(replacing: textSelections, with: attributedString) {
+                apply(change)
+            }
+        }
+
+        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
+        // TODO: Also, can these be replaced with needsLayout = true
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
+
+        updateInsertionPointTimer()
+
+        unmarkText()
+        inputContext?.invalidateCharacterCoordinates()
     }
 
     @objc override func selectAll(_ sender: Any?) {

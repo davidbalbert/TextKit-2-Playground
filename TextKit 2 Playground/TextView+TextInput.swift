@@ -25,7 +25,32 @@ extension TextView: NSTextInputClient {
             return
         }
 
-        replaceCharacters(in: textSelections, with: attributedString, unmarkText: true)
+        /*
+         What is it I'm trying to do?
+         I'd like to have fewer (ideally one or two) entry points into inserting text
+         I don't want to have to have many layers of stuff that make it hard to understand.
+         I also want to not have "shouldUnmark" in replaceCharacters. Instead, I want to
+         have my API be simple enough, sot that I can just call shouldUnmark, etc. myself.
+         */
+
+//        replaceCharacters(in: textSelections, with: attributedString, unmarkText: true)
+
+        textContentStorage.performEditingTransaction {
+            for change in changes(replacing: textSelections, with: attributedString) {
+                apply(change)
+            }
+        }
+
+        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
+        // TODO: Also, can these be replaced with needsLayout = true
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
+
+        updateInsertionPointTimer()
+
+        unmarkText()
+        inputContext?.invalidateCharacterCoordinates()
     }
 
     override func doCommand(by selector: Selector) {
@@ -47,13 +72,28 @@ extension TextView: NSTextInputClient {
 
         let replacementSelections = textSelections
 
-        if attributedString.length == 0 {
-            replaceCharacters(in: replacementSelections, with: "", unmarkText: true)
-            unmarkText()
-        } else {
-            textSelections = replacementSelections.compactMap { $0.mark(attributedString, selectedRange: selectedRange, in: textContentStorage) }
-            replaceCharacters(in: replacementSelections, with: attributedString, unmarkText: false)
+        textContentStorage.performEditingTransaction {
+            if attributedString.length == 0 {
+                for change in changes(deleting: textSelections) {
+                    apply(change)
+                }
+                unmarkText()
+            } else {
+                textSelections = replacementSelections.compactMap { $0.mark(attributedString, selectedRange: selectedRange, in: textContentStorage) }
+
+                for change in changes(replacing: replacementSelections, with: attributedString) {
+                    apply(change)
+                }
+            }
         }
+
+        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
+        // TODO: Also, can these be replaced with needsLayout = true
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
+
+        updateInsertionPointTimer()
 
         inputContext?.invalidateCharacterCoordinates()
     }

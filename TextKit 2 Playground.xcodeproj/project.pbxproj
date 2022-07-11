@@ -33,6 +33,7 @@
 		63921D83285F778100961F8E /* CGSize+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D82285F778100961F8E /* CGSize+Extensions.swift */; };
 		63921D85285F778D00961F8E /* CGRect+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D84285F778D00961F8E /* CGRect+Extensions.swift */; };
 		63921D892860C0C600961F8E /* TextLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D882860C0C600961F8E /* TextLayout.swift */; };
+		63A8FA76287BA6050013EB1F /* TextChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A8FA75287BA6050013EB1F /* TextChange.swift */; };
 		63BADCB7286E7DAC00396C40 /* CustomInvalidations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */; };
 		63EDEB912878C6C000B639FD /* MarkedTextSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EDEB902878C6C000B639FD /* MarkedTextSelection.swift */; };
 		63EDEB932878C6D200B639FD /* NSTextSelection+Marking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EDEB922878C6D200B639FD /* NSTextSelection+Marking.swift */; };
@@ -87,6 +88,7 @@
 		63921D82285F778100961F8E /* CGSize+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGSize+Extensions.swift"; sourceTree = "<group>"; };
 		63921D84285F778D00961F8E /* CGRect+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGRect+Extensions.swift"; sourceTree = "<group>"; };
 		63921D882860C0C600961F8E /* TextLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLayout.swift; sourceTree = "<group>"; };
+		63A8FA75287BA6050013EB1F /* TextChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextChange.swift; sourceTree = "<group>"; };
 		63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomInvalidations.swift; sourceTree = "<group>"; };
 		63EDEB902878C6C000B639FD /* MarkedTextSelection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MarkedTextSelection.swift; sourceTree = "<group>"; };
 		63EDEB922878C6D200B639FD /* NSTextSelection+Marking.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSTextSelection+Marking.swift"; sourceTree = "<group>"; };
@@ -157,6 +159,7 @@
 				635D1B2E2870F7C100989ED6 /* TextBackgroundLayout.swift */,
 				63921D882860C0C600961F8E /* TextLayout.swift */,
 				638ACBBF282BD2CC0012D282 /* TextView.swift */,
+				63A8FA75287BA6050013EB1F /* TextChange.swift */,
 				63EDEB922878C6D200B639FD /* NSTextSelection+Marking.swift */,
 				63EDEB902878C6C000B639FD /* MarkedTextSelection.swift */,
 				637DD067287362B20026A0CA /* TextView+Actions.swift */,
@@ -327,6 +330,7 @@
 				63921D7D285EB98A00961F8E /* WeakDictionary.swift in Sources */,
 				63558151286912A000C8F14B /* NSAttributedString+Extensions.swift in Sources */,
 				630A736228563BE1007C0522 /* TextView+TextSelection.swift in Sources */,
+				63A8FA76287BA6050013EB1F /* TextChange.swift in Sources */,
 				63921D83285F778100961F8E /* CGSize+Extensions.swift in Sources */,
 				63921D75285E370000961F8E /* NonAnimatingLayer.swift in Sources */,
 				63BADCB7286E7DAC00396C40 /* CustomInvalidations.swift in Sources */,

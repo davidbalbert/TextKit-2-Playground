@@ -109,7 +109,21 @@ extension TextView {
                                                                      allowsDecomposition: false)
         }
 
-        deleteCharacters(in: deletionRanges)
+        textContentStorage.performEditingTransaction {
+            for change in changes(deleting: deletionRanges) {
+                apply(change)
+            }
+        }
+
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
+
+        // TODO: defer this to next tick of the runloop somehow
+        updateInsertionPointTimer()
+
+        unmarkText()
+        inputContext?.invalidateCharacterCoordinates()
     }
 
     func removeZeroLengthSelections() {
