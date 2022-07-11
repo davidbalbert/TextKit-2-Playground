@@ -50,6 +50,43 @@ extension TextView: NSTextViewportLayoutControllerDelegate {
             insertionPointLayer.name = "Insertion points"
             layer.addSublayer(insertionPointLayer)
         }
+
+        // We don't set needsLayout manually. This means layout is called in two
+        // situations that I know of. The first is when the TextView is resized.
+        // In this situation, we don't need to call setNeedsLayout on the following
+        // layers, because each layer gets resized due to its autoresizing mask,
+        // and layout is triggered automatically.
+        //
+        // The second situation layout is called is more interesting. I figured this
+        // out by doing some disassembly.
+        //
+        // At the end of performEditingTransaction, if automaticallySynchronizesTextLayoutManagers
+        // is true (which it is by default), something like the following call tree occurs:
+
+        // -[NSTextContentManager synchronizeTextLayoutManagers:]                          (public)
+        // -[NSTextLayoutManager processLayoutInvalidationForTextRange:synchronizing:]     (undocumented)
+        // -[NSTextViewportLayoutController setNeedsLayout]                                (undocumented)
+        // -[TextView setNeedsLayout]
+        //
+        // This behavior is undocumented, but it makes sense. If someone edits the text of our backing store,
+        // we expect that our text view would be notified that it needs to do text layout again.
+        //
+        // One caveat:
+        // The docs say this syncronizes the non-primary textLayoutManagers. I'm not sure if the primary
+        // one gets syncronized at some other point. Regardless, let's assume it does get synchronized.
+        //
+        // To look into at some point: the docs for NSTextContentManager.performEditingTransaction say:
+        //    Invoked by primaryTextLayoutManager controlling the active editing transaction
+        //
+        // That's curious. I wonder when this happens. NSTextContentManager has two definitions of
+        // replaceContents(in:with:), where with can be an NSAttributedString or an [NSTextElement].
+        // I wonder if you're supposed to pass run edits through the textLayoutManager?
+        //
+        // Regardless, we have these calls to setNeedsLayout here because layout() gets called on the
+        // next tick after performEditingTransaction.
+        textLayer.setNeedsLayout()
+        selectionLayer.setNeedsLayout()
+        insertionPointLayer.setNeedsLayout()
     }
 
     override func updateLayer() {

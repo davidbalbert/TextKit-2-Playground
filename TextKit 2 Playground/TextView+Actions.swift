@@ -20,14 +20,7 @@ extension TextView: NSMenuItemValidation {
             }
         }
 
-        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
-        // TODO: Also, can these be replaced with needsLayout = true
-        textLayer.setNeedsLayout()
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
-
         updateInsertionPointTimer()
-
         unmarkText()
         inputContext?.invalidateCharacterCoordinates()
     }
@@ -241,12 +234,6 @@ extension TextView: NSMenuItemValidation {
             }
         }
 
-        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
-        // TODO: Also, can these be replaced with needsLayout = true
-        textLayer.setNeedsLayout()
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
-
         updateInsertionPointTimer()
 
         unmarkText()
@@ -273,12 +260,6 @@ extension TextView: NSMenuItemValidation {
                 apply(change)
             }
         }
-
-        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
-        // TODO: Also, can these be replaced with needsLayout = true
-        textLayer.setNeedsLayout()
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
 
         updateInsertionPointTimer()
 

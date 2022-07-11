@@ -298,12 +298,6 @@ class TextView: NSView, NSTextContentStorageDelegate {
             apply(.replace(textRange: textRange, attributedString: attributedString))
         }
 
-        // TODO: why are these needed? Won't textStorage notify me and tell me to redraw? Or is that more of a TextKit 1 thing?
-        // TODO: Also, can these be replaced with needsLayout = true
-        textLayer.setNeedsLayout()
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
-
         updateInsertionPointTimer()
 
         unmarkText()
