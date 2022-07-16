@@ -110,18 +110,12 @@ extension TextView {
         }
 
         textContentStorage.performEditingTransaction {
-            for change in changes(deleting: deletionRanges) {
-                apply(change)
+            for textRange in deletionRanges {
+                internalDeleteCharacters(in: textRange)
             }
         }
 
-        textLayer.setNeedsLayout()
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
-
-        // TODO: defer this to next tick of the runloop somehow
         updateInsertionPointTimer()
-
         unmarkText()
         inputContext?.invalidateCharacterCoordinates()
     }

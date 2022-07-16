@@ -26,13 +26,10 @@ extension TextView: NSTextInputClient {
         }
 
         textContentStorage.performEditingTransaction {
-            for change in changes(replacing: textSelections, with: attributedString) {
-                apply(change)
-            }
+            internalReplaceCharacters(in: textSelections, with: attributedString)
         }
 
         updateInsertionPointTimer()
-
         unmarkText()
         inputContext?.invalidateCharacterCoordinates()
     }
@@ -58,16 +55,11 @@ extension TextView: NSTextInputClient {
 
         textContentStorage.performEditingTransaction {
             if attributedString.length == 0 {
-                for change in changes(deleting: textSelections) {
-                    apply(change)
-                }
+                internalReplaceCharacters(in: textSelections, with: "")
                 unmarkText()
             } else {
                 textSelections = replacementSelections.compactMap { $0.mark(attributedString, selectedRange: selectedRange, in: textContentStorage) }
-
-                for change in changes(replacing: replacementSelections, with: attributedString) {
-                    apply(change)
-                }
+                internalReplaceCharacters(in: textSelections, with: attributedString)
             }
         }
 

@@ -15,9 +15,7 @@ extension TextView: NSMenuItemValidation {
 
     override func insertNewline(_ sender: Any?) {
         textContentStorage.performEditingTransaction {
-            for change in changes(replacing: textSelections, with: "\n") {
-                apply(change)
-            }
+            internalReplaceCharacters(in: textSelections, with: "\n")
         }
 
         updateInsertionPointTimer()
@@ -229,13 +227,10 @@ extension TextView: NSMenuItemValidation {
         copy(sender)
 
         textContentStorage.performEditingTransaction {
-            for change in changes(replacing: textSelections, with: "") {
-                apply(change)
-            }
+            internalReplaceCharacters(in: textSelections, with: "")
         }
 
         updateInsertionPointTimer()
-
         unmarkText()
         inputContext?.invalidateCharacterCoordinates()
     }
@@ -256,13 +251,10 @@ extension TextView: NSMenuItemValidation {
         guard let attributedString = NSAttributedString(anyString: object) else { return }
 
         textContentStorage.performEditingTransaction {
-            for change in changes(replacing: textSelections, with: attributedString) {
-                apply(change)
-            }
+            internalReplaceCharacters(in: textSelections, with: attributedString)
         }
 
         updateInsertionPointTimer()
-
         unmarkText()
         inputContext?.invalidateCharacterCoordinates()
     }

@@ -295,7 +295,7 @@ class TextView: NSView, NSTextContentStorageDelegate {
 
     public func replaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString) {
         textContentStorage.performEditingTransaction {
-            apply(.replace(textRange: textRange, attributedString: attributedString))
+            internalReplaceCharacters(in: textRange, with: attributedString)
         }
 
         updateInsertionPointTimer()
@@ -304,43 +304,34 @@ class TextView: NSView, NSTextContentStorageDelegate {
         inputContext?.invalidateCharacterCoordinates()
     }
 
-    // MARK: - Character manipulation (private methods)
+    // MARK: - Character manipulation (internal methods)
 
-    func changes(replacing textSelections: [NSTextSelection], with string: String) -> [TextChange] {
-        changes(replacing: textSelections, with: NSAttributedString(string: string))
+    func internalReplaceCharacters(in textSelections: [NSTextSelection], with string: String) {
+        internalReplaceCharacters(in: textSelections, with: NSAttributedString(string: string))
     }
 
-    func changes(replacing textSelections: [NSTextSelection], with attributedString: NSAttributedString) -> [TextChange] {
-        var changes: [TextChange] = []
-
+    func internalReplaceCharacters(in textSelections: [NSTextSelection], with attributedString: NSAttributedString) {
         for textSelection in textSelections {
-            if let firstTextRange = textSelection.markedTextRange ?? textSelection.textRanges.first {
-                changes.append(.replace(textRange: firstTextRange, attributedString: attributedString))
-            }
+            internalReplaceCharacters(in: textSelection, with: attributedString)
+        }
+    }
 
-            for textRange in textSelection.textRanges.dropFirst() {
-                changes.append(.delete(textRange: textRange))
-            }
+    func internalReplaceCharacters(in textSelection: NSTextSelection, with attributedString: NSAttributedString) {
+        if let firstTextRange = textSelection.markedTextRange ?? textSelection.textRanges.first {
+            internalReplaceCharacters(in: firstTextRange, with: attributedString)
         }
 
-        return changes
-    }
-
-    func changes(deleting textSelections: [NSTextSelection]) -> [TextChange] {
-        changes(deleting: textSelections.flatMap(\.textRanges))
-    }
-
-    func changes(deleting textRanges: [NSTextRange]) -> [TextChange] {
-        textRanges.map { .delete(textRange: $0) }
-    }
-
-    func apply(_ change: TextChange) {
-        switch change {
-        case .replace(let textRange, let attributedString):
-            textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
-        case .delete(let textRange):
-            textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: "")
+        for textRange in textSelection.textRanges.dropFirst() {
+            internalDeleteCharacters(in: textRange)
         }
+    }
+
+    func internalReplaceCharacters(in textRange: NSTextRange, with attributedString: NSAttributedString) {
+        textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: attributedString)
+    }
+
+    func internalDeleteCharacters(in textRange: NSTextRange) {
+        textStorage.replaceCharacters(in: NSRange(textRange, in: textContentStorage), with: "")
     }
 
     // MARK: - Attribute manipulation
