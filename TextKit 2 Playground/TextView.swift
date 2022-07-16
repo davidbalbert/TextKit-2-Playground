@@ -31,24 +31,24 @@ class TextView: NSView, NSTextContentStorageDelegate {
         true
     }
 
-    internal var textLayoutManager = NSTextLayoutManager()
-    internal var textStorage = NSTextStorage()
-    internal var textContentStorage = NSTextContentStorage()
-    internal var textContainer = NSTextContainer()
+    var textLayoutManager = NSTextLayoutManager()
+    var textStorage = NSTextStorage()
+    var textContentStorage = NSTextContentStorage()
+    var textContainer = NSTextContainer()
 
-    internal var textViewportLayoutController: NSTextViewportLayoutController {
+    var textViewportLayoutController: NSTextViewportLayoutController {
         textLayoutManager.textViewportLayoutController
     }
 
-    internal var textBackgroundLayer: CALayer = NonAnimatingLayer()
-    internal var selectionLayer: CALayer = NonAnimatingLayer()
-    internal var textLayer: CALayer = NonAnimatingLayer()
-    internal var insertionPointLayer: CALayer = NonAnimatingLayer()
+    var textBackgroundLayer: CALayer = NonAnimatingLayer()
+    var selectionLayer: CALayer = NonAnimatingLayer()
+    var textLayer: CALayer = NonAnimatingLayer()
+    var insertionPointLayer: CALayer = NonAnimatingLayer()
 
-    internal lazy var textBackgroundLayout = TextBackgroundLayout(textView: self, layer: textBackgroundLayer)
-    internal lazy var selectionLayout = SelectionLayout(textView: self)
-    internal lazy var textLayout = TextLayout(textView: self)
-    internal lazy var insertionPointLayout = InsertionPointLayout(textView: self)
+    lazy var textBackgroundLayout = TextBackgroundLayout(textView: self, layer: textBackgroundLayer)
+    lazy var selectionLayout = SelectionLayout(textView: self)
+    lazy var textLayout = TextLayout(textView: self)
+    lazy var insertionPointLayout = InsertionPointLayout(textView: self)
 
     var typingAttributes: [NSAttributedString.Key : Any] = [
         .foregroundColor: NSColor.black,
@@ -95,7 +95,7 @@ class TextView: NSView, NSTextContentStorageDelegate {
             textStorage.string
         }
         set {
-            textStorage.setAttributedString(NSAttributedString(string: newValue))
+            textStorage.setAttributedString(NSAttributedString(string: newValue, attributes: typingAttributes))
             createInsertionPointIfNecessary()
         }
     }
