@@ -311,18 +311,22 @@ class TextView: NSView, NSTextContentStorageDelegate {
     }
 
     func internalReplaceCharacters(in textSelections: [NSTextSelection], with attributedString: NSAttributedString) {
-        for textSelection in textSelections {
-            internalReplaceCharacters(in: textSelection, with: attributedString)
+        textContentStorage.performEditingTransaction {
+            for textSelection in textSelections {
+                internalReplaceCharacters(in: textSelection, with: attributedString)
+            }
         }
     }
 
     func internalReplaceCharacters(in textSelection: NSTextSelection, with attributedString: NSAttributedString) {
-        if let firstTextRange = textSelection.markedTextRange ?? textSelection.textRanges.first {
-            internalReplaceCharacters(in: firstTextRange, with: attributedString)
-        }
+        textContentStorage.performEditingTransaction {
+            if let firstTextRange = textSelection.markedTextRange ?? textSelection.textRanges.first {
+                internalReplaceCharacters(in: firstTextRange, with: attributedString)
+            }
 
-        for textRange in textSelection.textRanges.dropFirst() {
-            internalDeleteCharacters(in: textRange)
+            for textRange in textSelection.textRanges.dropFirst() {
+                internalDeleteCharacters(in: textRange)
+            }
         }
     }
 
