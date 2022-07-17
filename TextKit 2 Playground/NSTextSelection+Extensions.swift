@@ -1,5 +1,5 @@
 //
-//  NSTextSelection+Marking.swift
+//  NSTextSelection+Extensions.swift
 //  TextKit 2 Playground
 //
 //  Created by David Albert on 7/4/22.
@@ -20,7 +20,7 @@ extension NSTextSelection {
         nil
     }
 
-    func mark(_ markedString: NSAttributedString, selectedRange: NSRange, in textElementProvider: NSTextElementProvider) -> MarkedTextSelection? {
+    func markedSelection(for markedString: NSAttributedString, selectedRange: NSRange, in textElementProvider: NSTextElementProvider) -> MarkedTextSelection? {
         guard let firstTextRange = textRanges.first else {
             return nil
         }

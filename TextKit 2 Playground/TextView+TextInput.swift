@@ -58,7 +58,7 @@ extension TextView: NSTextInputClient {
                 internalReplaceCharacters(in: textSelections, with: "")
                 unmarkText()
             } else {
-                textSelections = replacementSelections.compactMap { $0.mark(attributedString, selectedRange: selectedRange, in: textContentStorage) }
+                textSelections = replacementSelections.compactMap { $0.markedSelection(for: attributedString, selectedRange: selectedRange, in: textContentStorage) }
                 internalReplaceCharacters(in: textSelections, with: attributedString)
             }
         }
