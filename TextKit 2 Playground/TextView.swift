@@ -50,6 +50,7 @@ class TextView: NSView, NSTextContentStorageDelegate {
     lazy var textLayout = TextLayout(textView: self)
     lazy var insertionPointLayout = InsertionPointLayout(textView: self)
 
+    // TODO: figure out how to use NSTextSelection.typingAttributes instead. Each selection should have its own typing attributes based on where it is in the document.
     var typingAttributes: [NSAttributedString.Key : Any] = [
         .foregroundColor: NSColor.black,
     ]
