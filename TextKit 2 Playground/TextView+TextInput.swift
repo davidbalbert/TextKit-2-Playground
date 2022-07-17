@@ -7,7 +7,9 @@
 
 import Cocoa
 
-// This extension is a pseudo re-imagined NSTextInputClient that makes more for use with TextKit 2.
+// This extension is a pseudo re-imagined NSTextInputClient for use with TextKit 2. We implement
+// NSTextInputClient in terms of this extension, though we don't do it rigorously as the NSTextInputClient
+// methods depend on other methods and properties defined on TextView.
 extension TextView {
     func insertText(_ string: Any, replacementTextSelections: [NSTextSelection]?) {
         guard let attributedString = NSAttributedString(anyString: string, attributes: typingAttributes) else {
