@@ -7,22 +7,15 @@
 
 import Cocoa
 
+// This extension is a pseudo re-imagined NSTextInputClient that makes more for use with TextKit 2.
 extension TextView {
-}
-
-extension TextView: NSTextInputClient {
-    func insertText(_ string: Any, replacementRange: NSRange) {
-        guard isEditable else { return }
-
-        print("insertText(_:replacementRange:)", string, replacementRange)
-
-        // I seem to always get {NSNotFound, 0} for replacementRange. For now, I'm
-        // going to ignore replacement range, but if I get a real replacementRange,
-        // I want to know about it.
-        assert(replacementRange == .notFound)
-
-        guard let attributedString = NSAttributedString(anyString: string, typingAttributes: typingAttributes) else {
+    func insertText(_ string: Any, replacementTextSelections: [NSTextSelection]?) {
+        guard let attributedString = NSAttributedString(anyString: string, attributes: typingAttributes) else {
             return
+        }
+
+        if let replacementTextSelections = replacementTextSelections {
+            textSelections = replacementTextSelections
         }
 
         textContentStorage.performEditingTransaction {
@@ -34,21 +27,13 @@ extension TextView: NSTextInputClient {
         inputContext?.invalidateCharacterCoordinates()
     }
 
-    override func doCommand(by selector: Selector) {
-        if responds(to: selector) {
-            perform(selector, with: nil)
-        } else {
-            print("doCommandBySelector:", selector)
-        }
-    }
-
-    func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
-        print("setMarkedText", string, selectedRange, replacementRange)
-
-        assert(replacementRange == .notFound)
-
-        guard let attributedString = NSAttributedString(anyString: string, typingAttributes: typingAttributes) else {
+    func setMarkedText(_ string: Any, selectedRange: NSRange, replacementTextSelections: [NSTextSelection]?) {
+        guard let attributedString = NSAttributedString(anyString: string, attributes: typingAttributes) else {
             return
+        }
+
+        if let replacementTextSelections = replacementTextSelections {
+            textSelections = replacementTextSelections
         }
 
         textContentStorage.performEditingTransaction {
@@ -66,26 +51,103 @@ extension TextView: NSTextInputClient {
         inputContext?.invalidateCharacterCoordinates()
     }
 
+    var textSelectionsInViewport: [NSTextSelection] {
+        guard let visibleRange = visibleRange else {
+            return []
+        }
+
+        return textSelections.filter { textSelection in
+            guard let location = textSelection.textRanges.first?.location else {
+                return false
+            }
+
+            return visibleRange.contains(location)
+        }
+    }
+
+    var textSelectionForInputClient: NSTextSelection? {
+        textSelectionsInViewport.last ?? textSelections.last
+    }
+
+    var visibleRange: NSTextRange? {
+        let x = visibleRect.minX
+        let minY = visibleRect.minY
+        let maxY = visibleRect.maxY
+
+        guard let firstFragment = textLayoutManager.textLayoutFragment(for: CGPoint(x: x, y: minY)) else { return nil }
+        guard let lastFragment = textLayoutManager.textLayoutFragment(for: CGPoint(x: x, y: maxY)) else { return nil }
+
+        return NSTextRange(location: firstFragment.rangeInElement.location, end: lastFragment.rangeInElement.endLocation)
+    }
+
+    func replacementTextSelections(for replacementRange: NSRange) -> [NSTextSelection]? {
+        guard replacementRange != .notFound else {
+            return nil
+        }
+
+        // If the system gives us a replacementRange, it's derived from what we gave it
+        // for selectedRange() – which is to say, the first range of the text selection
+        // that's most appropriate for use with an input method editor.
+        let baseRange = selectedRange()
+
+        guard baseRange != .notFound else {
+            return nil
+        }
+
+        let offset = replacementRange.location - baseRange.location
+        let length = replacementRange.length
+
+        return textSelections.compactMap { textSelection in
+            textSelection.contiguousTextSelection(offsetBy: offset, length: length, in: textContentStorage)
+        }
+    }
+}
+
+extension TextView: NSTextInputClient {
+    func insertText(_ string: Any, replacementRange: NSRange) {
+        guard isEditable else { return }
+
+        print("insertText(_:replacementRange:)", string, replacementRange)
+
+        insertText(string, replacementTextSelections: replacementTextSelections(for: replacementRange))
+    }
+
+    override func doCommand(by selector: Selector) {
+        if responds(to: selector) {
+            perform(selector, with: nil)
+        } else {
+            print("doCommandBySelector:", selector)
+        }
+    }
+
+    // selectedRange - the new in the coordinate system of the string
+    func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
+        guard isEditable else { return }
+
+        print("setMarkedText", string, selectedRange, replacementRange)
+
+        setMarkedText(string, selectedRange: selectedRange, replacementTextSelections: replacementTextSelections(for: replacementRange))
+    }
+
     func unmarkText() {
         print("unmarkText")
         textSelections = textSelections.map(\.unmarked)
         inputContext?.discardMarkedText()
     }
 
+    // Should return the newestTextSelection in the current viewport. If no textSelection is in the viewport when
+    // insertText is called, we should move the viewport to the newest textSelection, centered if necessary.
     func selectedRange() -> NSRange {
-        print("selectedRange")
-
-        guard let textRange = textSelections.first?.textRanges.first else {
-            return .notFound
-        }
-
-        return NSRange(textRange, in: textContentStorage)
+        return NSRange(textSelectionForInputClient?.textRanges.first, in: textContentStorage)
     }
 
     func markedRange() -> NSRange {
         print("markedRange")
+        guard let markedTextRange = markedTextRanges.first else {
+            return .notFound
+        }
 
-        return .notFound
+        return NSRange(markedTextRange, in: textContentStorage)
     }
 
     func hasMarkedText() -> Bool {
@@ -105,9 +167,24 @@ extension TextView: NSTextInputClient {
     }
 
     func firstRect(forCharacterRange range: NSRange, actualRange: NSRangePointer?) -> NSRect {
-        print("firstRectForCharacterRange", range, actualRange)
+        print("firstRectForCharacterRange", range, actualRange!.pointee)
+        guard let textRange = NSTextRange(range, in: textContentStorage) else { return .zero  }
 
-        return .zero
+        var rect: NSRect = .zero
+        textLayoutManager.enumerateTextSegments(in: textRange, type: .standard) { segmentTextRange, segmentRect, _, _ in
+            rect = segmentRect
+
+            if let segmentTextRange = segmentTextRange, let actualRange = actualRange {
+                actualRange.pointee = NSRange(segmentTextRange, in: textContentStorage)
+            }
+
+            return false
+        }
+
+        let windowRect = convert(rect, to: nil)
+        let screenRect = window?.convertToScreen(windowRect) ?? .zero
+
+        return screenRect
     }
 
     func characterIndex(for point: NSPoint) -> Int {
@@ -115,4 +192,6 @@ extension TextView: NSTextInputClient {
 
         return 0
     }
+
+    // TODO: add appropriate optional methods on NSTextInputClient (like attributedString())
 }

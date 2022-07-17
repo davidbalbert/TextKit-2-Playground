@@ -44,18 +44,24 @@ extension TextView {
     }
 
     override func keyDown(with event: NSEvent) {
-        guard isEditable, let inputContext = inputContext else { return }
+        guard isEditable else { return }
 
         NSCursor.setHiddenUntilMouseMoves(true)
 
-        if !inputContext.handleEvent(event) {
-            // Not sure handleEvent returns false. Just want to know about it.
-            print("inputContext didn't handle this event:", event)
+        if inputContext?.handleEvent(event) ?? false {
+            return
         }
+
+        // Don't know if handleEvent ever returns false here. Just want to know about it.
+        print("keyDown: inputContext didn't handle this event:", event)
     }
 
     override func mouseDown(with event: NSEvent) {
         guard isSelectable else { return }
+
+        if inputContext?.handleEvent(event) ?? false {
+            return
+        }
 
         let point = convert(event.locationInWindow, from: nil)
 
@@ -73,6 +79,10 @@ extension TextView {
     override func mouseDragged(with event: NSEvent) {
         guard isSelectable else { return }
 
+        if inputContext?.handleEvent(event) ?? false {
+            return
+        }
+
         let point = convert(event.locationInWindow, from: nil)
         extendSelection(to: point)
 
@@ -83,6 +93,10 @@ extension TextView {
 
     override func mouseUp(with event: NSEvent) {
         guard isSelectable else { return }
+
+        if inputContext?.handleEvent(event) ?? false {
+            return
+        }
 
         // Zero length selections are insertion points. We only allow
         // insertion points if we're editable

@@ -248,7 +248,7 @@ extension TextView: NSMenuItemValidation {
 
     @objc func paste(_ sender: Any) {
         guard let object = NSPasteboard.general.readObjects(forClasses: pastableTypes)?.first else { return }
-        guard let attributedString = NSAttributedString(anyString: object, typingAttributes: typingAttributes) else { return }
+        guard let attributedString = NSAttributedString(anyString: object, attributes: typingAttributes) else { return }
 
         textContentStorage.performEditingTransaction {
             internalReplaceCharacters(in: textSelections, with: attributedString)

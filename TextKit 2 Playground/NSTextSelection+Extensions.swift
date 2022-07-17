@@ -35,4 +35,18 @@ extension NSTextSelection {
 
         return MarkedTextSelection([selectedRange], affinity: affinity, granularity: granularity, markedRange: markedRange)
     }
+
+    func contiguousTextSelection(offsetBy offset: Int, length: Int, in textElementProvider: NSTextElementProvider) -> NSTextSelection? {
+        guard let firstTextRange = textRanges.first else {
+            return nil
+        }
+
+        guard let location = textElementProvider.location?(firstTextRange.location, offsetBy: offset),
+              let end = textElementProvider.location?(location, offsetBy: length),
+              let textRange = NSTextRange(location: location, end: end) else {
+            return nil
+        }
+
+        return textSelection([textRange])
+    }
 }

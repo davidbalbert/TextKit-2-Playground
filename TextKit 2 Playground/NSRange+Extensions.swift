@@ -10,11 +10,20 @@ import Cocoa
 extension NSRange {
     static var notFound = NSRange(location: NSNotFound, length: 0)
 
-    init(_ textRange: NSTextRange, in textElementProvider: NSTextElementProvider) {
-        let location = textElementProvider.offset?(from: textElementProvider.documentRange.location, to: textRange.location) ?? NSNotFound
-        let length = textElementProvider.offset?(from: textRange.location, to: textRange.endLocation) ?? 0
+    init(_ textRange: NSTextRange?, in textElementProvider: NSTextElementProvider) {
+        guard let textRange = textRange else {
+            self.init(location: NSNotFound, length: 0)
+            return
+        }
 
-        self.init(location: location, length: length)
+        let location = textElementProvider.offset?(from: textElementProvider.documentRange.location, to: textRange.location)
+        let length = textElementProvider.offset?(from: textRange.location, to: textRange.endLocation)
+
+        if let location = location, let length = length {
+            self.init(location: location, length: length)
+        } else {
+            self.init(location: NSNotFound, length: 0)
+        }
     }
 
     func offset(by offset: Int) -> NSRange? {

@@ -12,9 +12,9 @@ extension NSAttributedString.Key {
 }
 
 extension NSAttributedString {
-    convenience init?(anyString string: Any, typingAttributes: [NSAttributedString.Key : Any]) {
+    convenience init?(anyString string: Any, attributes: [NSAttributedString.Key : Any]) {
         if let string = string as? String {
-            self.init(string: string, attributes: typingAttributes)
+            self.init(string: string, attributes: attributes)
         } else if let attributedString = string as? NSAttributedString {
             self.init(attributedString: attributedString)
         } else {
