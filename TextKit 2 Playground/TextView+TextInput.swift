@@ -51,15 +51,14 @@ extension TextView: NSTextInputClient {
             return
         }
 
-        let replacementSelections = textSelections
-
         textContentStorage.performEditingTransaction {
             if attributedString.length == 0 {
                 internalReplaceCharacters(in: textSelections, with: "")
                 unmarkText()
             } else {
-                textSelections = replacementSelections.compactMap { $0.markedSelection(for: attributedString, selectedRange: selectedRange, in: textContentStorage) }
+                let previousSelections = textSelections
                 internalReplaceCharacters(in: textSelections, with: attributedString)
+                textSelections = previousSelections.compactMap { $0.markedSelection(for: attributedString, selectedRange: selectedRange, in: textContentStorage) }
             }
         }
 
