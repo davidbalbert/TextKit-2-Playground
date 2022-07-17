@@ -21,7 +21,7 @@ extension TextView: NSTextInputClient {
         // I want to know about it.
         assert(replacementRange == .notFound)
 
-        guard let attributedString = NSAttributedString(anyString: string) else {
+        guard let attributedString = NSAttributedString(anyString: string, typingAttributes: typingAttributes) else {
             return
         }
 
@@ -47,7 +47,7 @@ extension TextView: NSTextInputClient {
 
         assert(replacementRange == .notFound)
 
-        guard let attributedString = NSAttributedString(anyString: string) else {
+        guard let attributedString = NSAttributedString(anyString: string, typingAttributes: typingAttributes) else {
             return
         }
 
