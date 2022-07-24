@@ -91,6 +91,8 @@ class TextView: NSView, NSTextContentStorageDelegate {
         }
     }
 
+    @Invalidating(.textDisplay) public var debugLayout: Bool = false
+
     var string: String {
         get {
             textStorage.string

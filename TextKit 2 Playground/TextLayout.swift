@@ -39,21 +39,34 @@ class TextLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLayerContent
 
         let layer = fragmentLayerMap.object(forKey: textLayoutFragment) ?? makeLayer(for: textLayoutFragment)
 
-        // The textLayoutFragment has a bounds and a frame, like a view, but the bounds and the
-        // frame are different sizes. The layoutFragmentFrame is generally smaller and inset within
-        // the renderingSurfaceBounds, but not always (blank lines have bounds that are smaller
-        // than the frames).
+        // The layoutFragmentFrame is the rectangle surrounding the text (including whitespace, but
+        // excluding some bits of the text like italicized descenders). It's in the text container's
+        // coordinate system. Each layout fragment directly abuts its siblings.
         //
-        // We want our layer's size to be set by the renderingSurfaceBounds (the actual area that
-        // the layout fragment needs to draw into), and we need to set our position by the layout
-        // fragment frame.
+        // The renderingSurfaceBounds is the actual size of the layer we need to draw the text in. It
+        // includes the italicized descenders, but it doesn't include trailing whitespace because we
+        // don't actually need to draw that. Most of the time, it's larger than the layoutFragmentFrame,
+        // but sometimes it can be smaller (if the layout fragment has trailing whitespace), or even
+        // a size of zero (if the layout fragment is entirely whitespace). It's in the layout fragment's
+        // own coordinate space, and as long as the layout fragment contains some non-whitespace glyphs,
+        // it's origin will be negative. In other words, the layout fragment can extend outside the
+        // text container.
         //
-        // The bounds origin seems to never be at zero, which means (conceptually) that the
-        // layoutFragmentFrame is translated within the bounds. In order to use the frame's
-        // origin as our position, we set our layer's anchor to be the the frame's origin
-        // in the (slightly translated) coordinate space of the frame.
+        // We size each layer based on the renderingSurfaceBounds (see caveat), but position them using
+        // the layoutFragmentFrame's origin. To do this, we ensure the layer's anchorPoint is set to
+        // (0, 0) in the coordinate system of the layer's bounds. Because the bounds often has a negative
+        // origin, the anchorPoint is usually inset from the bounds origin.
+        //
+        // Caveat: layout fragments that contain only whitespace have a zero sized renderingSurfaceBounds.
+        // Using this value alone yields an anchorPoint of (-inf, -inf), which is confusing for debugging.
+        // Additionally, when debugLayout is set, we need a layer big enough to draw the layoutFragmentFrame.
+        // For this reason, we set the bounds of the layer to be the union of the renderingSurfaceBounds and
+        // the typographicBounds, which is just the layoutFragmentFrame with its origin set to zero.
 
-        let bounds = textLayoutFragment.renderingSurfaceBounds
+        let renderingSurfaceBounds = textLayoutFragment.renderingSurfaceBounds
+        let typographicBounds = textLayoutFragment.typographicBounds
+        let bounds = renderingSurfaceBounds.union(typographicBounds)
+
         layer.anchorPoint = CGPoint(x: -bounds.origin.x/bounds.width, y: -bounds.origin.y/bounds.height)
         layer.bounds = bounds
         layer.position = textLayoutFragment.layoutFragmentFrame.origin
@@ -80,6 +93,19 @@ class TextLayout: NSObject, CALayoutManager, CALayerDelegate, NSViewLayerContent
 
         textView.effectiveAppearance.performAsCurrentDrawingAppearance {
             textLayoutFragment.draw(at: .zero, in: ctx)
+
+            if textView.debugLayout {
+                ctx.saveGState()
+                ctx.setStrokeColor(NSColor.systemPurple.cgColor)
+                ctx.stroke(textLayoutFragment.typographicBounds.insetBy(dx: 0.5, dy: 0.5), width: 1)
+
+                ctx.setStrokeColor(NSColor.systemOrange.cgColor)
+                ctx.stroke(textLayoutFragment.renderingSurfaceBounds.insetBy(dx: 0.5, dy: 0.5), width: 1)
+
+                ctx.setFillColor(NSColor.blue.cgColor)
+                ctx.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+                ctx.restoreGState()
+            }
         }
     }
 
