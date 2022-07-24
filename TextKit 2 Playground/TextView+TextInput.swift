@@ -189,10 +189,18 @@ extension TextView: NSTextInputClient {
         return screenRect
     }
 
-    func characterIndex(for point: NSPoint) -> Int {
-        print("characterIndexFor", point)
+    // TODO: there's a bug where if you hold "e" and then instead of selecting an accented character from the popup window, click elsewhere in the same paragraph, your selection won't move to the location you click, it will move somewhere in a previous paragraph
+    func characterIndex(for screenPoint: NSPoint) -> Int {
+        print("characterIndex(for:)", screenPoint)
+        guard let window = window else {
+            return NSNotFound
+        }
 
-        return 0
+        let windowPoint = window.convertPoint(fromScreen: screenPoint)
+        let point = convert(windowPoint, from: nil)
+
+        // TODO: textLayoutManager.characterIndex(for:) expects a point in the textContainer's coordinate space. We're giving it a point in the textView's coordinate space. For now this is fine because they're on in the same, but when we add textContainerInsets, that will have to change.
+        return textLayoutManager.characterIndex(for: point)
     }
 
     // TODO: add appropriate optional methods on NSTextInputClient (like attributedString())

@@ -14,6 +14,7 @@
 		63558151286912A000C8F14B /* NSAttributedString+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */; };
 		635581532869446200C8F14B /* NSTextRange+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635581522869446200C8F14B /* NSTextRange+Extensions.swift */; };
 		635D1B2F2870F7C100989ED6 /* TextBackgroundLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635D1B2E2870F7C100989ED6 /* TextBackgroundLayout.swift */; };
+		635F9F94288474DE00416549 /* NSTextLayoutManager+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9F93288474DE00416549 /* NSTextLayoutManager+Extensions.swift */; };
 		637DD06428735D560026A0CA /* TextView+Drawing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637DD06328735D560026A0CA /* TextView+Drawing.swift */; };
 		637DD06628735EA30026A0CA /* TextView+Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637DD06528735EA30026A0CA /* TextView+Events.swift */; };
 		637DD068287362B20026A0CA /* TextView+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637DD067287362B20026A0CA /* TextView+Actions.swift */; };
@@ -33,6 +34,8 @@
 		63921D83285F778100961F8E /* CGSize+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D82285F778100961F8E /* CGSize+Extensions.swift */; };
 		63921D85285F778D00961F8E /* CGRect+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D84285F778D00961F8E /* CGRect+Extensions.swift */; };
 		63921D892860C0C600961F8E /* TextLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63921D882860C0C600961F8E /* TextLayout.swift */; };
+		63B47367288C661D00BB63EB /* NSTextLayoutFragment+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63B47366288C661D00BB63EB /* NSTextLayoutFragment+Extensions.swift */; };
+		63B47369288CCD2E00BB63EB /* NSTextLineFragment+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63B47368288CCD2E00BB63EB /* NSTextLineFragment+Extensions.swift */; };
 		63BADCB7286E7DAC00396C40 /* CustomInvalidations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */; };
 		63EDEB912878C6C000B639FD /* MarkedTextSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EDEB902878C6C000B639FD /* MarkedTextSelection.swift */; };
 		63EDEB932878C6D200B639FD /* NSTextSelection+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EDEB922878C6D200B639FD /* NSTextSelection+Extensions.swift */; };
@@ -64,6 +67,7 @@
 		63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSAttributedString+Extensions.swift"; sourceTree = "<group>"; };
 		635581522869446200C8F14B /* NSTextRange+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSTextRange+Extensions.swift"; sourceTree = "<group>"; };
 		635D1B2E2870F7C100989ED6 /* TextBackgroundLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextBackgroundLayout.swift; sourceTree = "<group>"; };
+		635F9F93288474DE00416549 /* NSTextLayoutManager+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSTextLayoutManager+Extensions.swift"; sourceTree = "<group>"; };
 		637DD06328735D560026A0CA /* TextView+Drawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextView+Drawing.swift"; sourceTree = "<group>"; };
 		637DD06528735EA30026A0CA /* TextView+Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextView+Events.swift"; sourceTree = "<group>"; };
 		637DD067287362B20026A0CA /* TextView+Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextView+Actions.swift"; sourceTree = "<group>"; };
@@ -87,6 +91,8 @@
 		63921D82285F778100961F8E /* CGSize+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGSize+Extensions.swift"; sourceTree = "<group>"; };
 		63921D84285F778D00961F8E /* CGRect+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGRect+Extensions.swift"; sourceTree = "<group>"; };
 		63921D882860C0C600961F8E /* TextLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLayout.swift; sourceTree = "<group>"; };
+		63B47366288C661D00BB63EB /* NSTextLayoutFragment+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSTextLayoutFragment+Extensions.swift"; sourceTree = "<group>"; };
+		63B47368288CCD2E00BB63EB /* NSTextLineFragment+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSTextLineFragment+Extensions.swift"; sourceTree = "<group>"; };
 		63BADCB6286E7DAC00396C40 /* CustomInvalidations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomInvalidations.swift; sourceTree = "<group>"; };
 		63EDEB902878C6C000B639FD /* MarkedTextSelection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MarkedTextSelection.swift; sourceTree = "<group>"; };
 		63EDEB922878C6D200B639FD /* NSTextSelection+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSTextSelection+Extensions.swift"; sourceTree = "<group>"; };
@@ -153,6 +159,9 @@
 				63558150286912A000C8F14B /* NSAttributedString+Extensions.swift */,
 				63EDEB94287A0D0200B639FD /* NSMutableAttributedString+Extensions.swift */,
 				630A736328566BA9007C0522 /* NSRange+Extensions.swift */,
+				63B47366288C661D00BB63EB /* NSTextLayoutFragment+Extensions.swift */,
+				635F9F93288474DE00416549 /* NSTextLayoutManager+Extensions.swift */,
+				63B47368288CCD2E00BB63EB /* NSTextLineFragment+Extensions.swift */,
 				635581522869446200C8F14B /* NSTextRange+Extensions.swift */,
 				63EDEB922878C6D200B639FD /* NSTextSelection+Extensions.swift */,
 				63921D78285E7FAF00961F8E /* SelectionLayout.swift */,
@@ -335,14 +344,17 @@
 				635D1B2F2870F7C100989ED6 /* TextBackgroundLayout.swift in Sources */,
 				63921D85285F778D00961F8E /* CGRect+Extensions.swift in Sources */,
 				63EDEB912878C6C000B639FD /* MarkedTextSelection.swift in Sources */,
+				63B47367288C661D00BB63EB /* NSTextLayoutFragment+Extensions.swift in Sources */,
 				637DD068287362B20026A0CA /* TextView+Actions.swift in Sources */,
 				63921D79285E7FAF00961F8E /* SelectionLayout.swift in Sources */,
+				63B47369288CCD2E00BB63EB /* NSTextLineFragment+Extensions.swift in Sources */,
 				63EDEB95287A0D0200B639FD /* NSMutableAttributedString+Extensions.swift in Sources */,
 				63921D892860C0C600961F8E /* TextLayout.swift in Sources */,
 				63921D7B285E88FE00961F8E /* InsertionPointLayout.swift in Sources */,
 				635581532869446200C8F14B /* NSTextRange+Extensions.swift in Sources */,
 				630A736028553104007C0522 /* TextView+TextInput.swift in Sources */,
 				63EDEB932878C6D200B639FD /* NSTextSelection+Extensions.swift in Sources */,
+				635F9F94288474DE00416549 /* NSTextLayoutManager+Extensions.swift in Sources */,
 				638ACBC0282BD2CC0012D282 /* TextView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
