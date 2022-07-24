@@ -157,7 +157,7 @@ class TextView: NSView, NSTextContentStorageDelegate {
     override func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize)
 
-        if (textContainer.size.width != bounds.width) {
+        if (textContainer.size.width != frame.width) {
             textContainer.size = CGSize(width: frame.width, height: 0)
         }
     }
