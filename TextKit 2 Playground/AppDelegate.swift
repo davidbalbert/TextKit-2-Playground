@@ -25,8 +25,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let textView = scrollView.documentView as! TextView
 
-        textView.isRichText = false
-        print(textView.isRichText)
+        // textView.isRichText = false
+        print("textView.isRichText", textView.isRichText)
 
         if let url = Bundle.main.url(forResource: "Moby Dick", withExtension: "txt") {
             textView.string = try! String(contentsOf: url)
