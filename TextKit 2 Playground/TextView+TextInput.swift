@@ -109,12 +109,14 @@ extension TextView: NSTextInputClient {
     func insertText(_ string: Any, replacementRange: NSRange) {
         guard isEditable else { return }
 
-        print("insertText(_:replacementRange:)", string, replacementRange)
+        print("insertText(_:replacementRange:)", string, replacementRange == .notFound ? "NSRange.notFound" : replacementRange)
 
         insertText(string, replacementTextSelections: replacementTextSelections(for: replacementRange))
     }
 
     override func doCommand(by selector: Selector) {
+        // print("doCommand(by:)", selector)
+
         if responds(to: selector) {
             perform(selector, with: nil)
         } else {
@@ -126,13 +128,13 @@ extension TextView: NSTextInputClient {
     func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
         guard isEditable else { return }
 
-        print("setMarkedText", string, selectedRange, replacementRange)
+        print("setMarkedText(_:selectedRange:replacementRange:)", string, selectedRange == .notFound ? "NSRange.notFound" : selectedRange, replacementRange == .notFound ? "NSRange.notFound" : replacementRange)
 
         setMarkedText(string, selectedRange: selectedRange, replacementTextSelections: replacementTextSelections(for: replacementRange))
     }
 
     func unmarkText() {
-        print("unmarkText")
+        print("unmarkText()")
         textSelections = textSelections.map(\.unmarked)
         inputContext?.discardMarkedText()
     }
@@ -140,11 +142,12 @@ extension TextView: NSTextInputClient {
     // Should return the newestTextSelection in the current viewport. If no textSelection is in the viewport when
     // insertText is called, we should move the viewport to the newest textSelection, centered if necessary.
     func selectedRange() -> NSRange {
+        // print("selectedRange()")
         return NSRange(textSelectionForInputClient?.textRanges.first, in: textContentStorage)
     }
 
     func markedRange() -> NSRange {
-        print("markedRange")
+        // print("markedRange()")
         guard let markedTextRange = markedTextRanges.first else {
             return .notFound
         }
@@ -153,23 +156,24 @@ extension TextView: NSTextInputClient {
     }
 
     func hasMarkedText() -> Bool {
-        textSelections.contains(where: \.isMarked)
+        // print("hasMarkedText()")
+        return textSelections.contains(where: \.isMarked)
     }
 
     func attributedSubstring(forProposedRange range: NSRange, actualRange: NSRangePointer?) -> NSAttributedString? {
-        print("attributedSubstringForProposedRange", range, actualRange)
+        print("attributedSubstring(forProposedRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange)
 
         return nil
     }
 
     func validAttributesForMarkedText() -> [NSAttributedString.Key] {
-        // print("validAttributesForMarkedText")
+        // print("validAttributesForMarkedText()")
         // Copied from NSTextView on macOS 12.4. Missing NSTextInsertionUndoable, which I can't any documentation for.
         return [.font, .underlineStyle, .foregroundColor, .backgroundColor, .underlineColor, .markedClauseSegment, .languageIdentifier, .replacementIndex, .glyphInfo, .textAlternatives, .attachment]
     }
 
     func firstRect(forCharacterRange range: NSRange, actualRange: NSRangePointer?) -> NSRect {
-        print("firstRectForCharacterRange", range, actualRange!.pointee)
+        print("firstRect(forCharacterRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange)
         guard let textRange = NSTextRange(range, in: textContentStorage) else { return .zero  }
 
         var rect: NSRect = .zero
@@ -199,8 +203,11 @@ extension TextView: NSTextInputClient {
         let windowPoint = window.convertPoint(fromScreen: screenPoint)
         let point = convert(windowPoint, from: nil)
 
-        // TODO: textLayoutManager.characterIndex(for:) expects a point in the textContainer's coordinate space. We're giving it a point in the textView's coordinate space. For now this is fine because they're on in the same, but when we add textContainerInsets, that will have to change.
-        return textLayoutManager.characterIndex(for: point)
+        // TODO: textLayoutManager.characterIndex(for:) expects a point in the textContainer's coordinate space. We're giving it a point in the textView's coordinate space. For now this is fine because they're one in the same, but when we add textContainerInsets, that will have to change.
+
+        let characterIndex = textLayoutManager.characterIndex(for: point)
+
+        return characterIndex
     }
 
     // TODO: add appropriate optional methods on NSTextInputClient (like attributedString())
