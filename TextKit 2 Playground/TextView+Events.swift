@@ -63,17 +63,30 @@ extension TextView {
             return
         }
 
-        let point = convert(event.locationInWindow, from: nil)
+        // HACK: Doing this on the next run loop tick fixes a bug with the PressAndHold input method editor.
+        //
+        // To reproduce the bug:
+        // 1. Remove DispatchQueue.main.async
+        // 2. Click in the middle of a paragraph
+        // 3. Press and hold "e" until the popover from the PressAndHold IME appears
+        // 4. Click somewhere in the same paragraph above the current insertion point
+        // 5. The insertion point will move above the line that you clicked on
+        //
+        // TODO: file a feedback reporting this
 
-        if event.modifierFlags.contains(.shift) && !textSelections.isEmpty {
-            extendSelection(to: point)
-        } else {
-            startSelection(at: point)
+        DispatchQueue.main.async {
+            let point = self.convert(event.locationInWindow, from: nil)
+
+            if event.modifierFlags.contains(.shift) && !self.textSelections.isEmpty {
+                self.extendSelection(to: point)
+            } else {
+                self.startSelection(at: point)
+            }
+
+            self.selectionLayer.setNeedsLayout()
+            self.insertionPointLayer.setNeedsLayout()
+            self.updateInsertionPointTimer()
         }
-
-        selectionLayer.setNeedsLayout()
-        insertionPointLayer.setNeedsLayout()
-        updateInsertionPointTimer()
     }
 
     override func mouseDragged(with event: NSEvent) {
