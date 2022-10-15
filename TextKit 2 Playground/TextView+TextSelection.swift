@@ -61,6 +61,7 @@ extension TextView {
     func startSelection(at point: CGPoint) {
         let navigation = textLayoutManager.textSelectionNavigation
 
+        // TODO: What is bounds for? It should probably not just be .zero, right?
         textSelections = navigation.textSelections(interactingAt: point,
                                                    inContainerAt: textLayoutManager.documentRange.location,
                                                    anchors: [],
@@ -72,6 +73,7 @@ extension TextView {
     func extendSelection(to point: CGPoint) {
         let navigation = textLayoutManager.textSelectionNavigation
 
+        // TODO: What is bounds for? It should probably not just be .zero, right?
         textSelections = navigation.textSelections(interactingAt: point,
                                                    inContainerAt: textLayoutManager.documentRange.location,
                                                    anchors: textSelections,
