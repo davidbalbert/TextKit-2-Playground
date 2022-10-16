@@ -30,7 +30,8 @@ extension TextView {
     }
 
     func setMarkedText(_ string: Any, selectedRange: NSRange, replacementTextSelections: [NSTextSelection]?) {
-        guard let attributedString = NSAttributedString(anyString: string, attributes: typingAttributes) else {
+        // TODO: If we're doing Romaji text entry, string will be an NSAttributedString and while we want markedTextAttributes to be ignored, we don't want to ignore typingAttributes. Deal with this once we've moved away from a single global typingAttributes and are using each textSelection's individual typingAttributes.
+        guard let attributedString = NSAttributedString(anyString: string, attributes: typingAttributes.merging(markedTextAttributes) { $1 }) else {
             return
         }
 

@@ -235,20 +235,12 @@ class TextView: NSView, NSTextContentStorageDelegate {
     // MARK: - NSTextContentStorageDelegate
 
     func textContentStorage(_ textContentStorage: NSTextContentStorage, textParagraphWith range: NSRange) -> NSTextParagraph? {
-        let markedRanges = markedTextRanges.compactMap { NSRange($0, in: textContentStorage).intersection(range) }
-
-        if markedRanges.isEmpty && !textStorage.containsAttribute(.backgroundColor, in: range) {
+        if !textStorage.containsAttribute(.backgroundColor, in: range) {
             return nil
         }
 
         let attributedString = NSMutableAttributedString(attributedString: textStorage.attributedSubstring(from: range))
-        let normalizedMarkedRanges = markedRanges.compactMap { $0.offset(by: -range.location) }
-
-        for markedRange in normalizedMarkedRanges {
-            attributedString.setAttributes(markedTextAttributes, range: markedRange)
-        }
-
-        attributedString.replaceAttribute(NSAttributedString.Key.backgroundColor, with: .undrawnBackgroundColor)
+        attributedString.replaceAttribute(.backgroundColor, with: .undrawnBackgroundColor)
 
         return NSTextParagraph(attributedString: attributedString)
     }
