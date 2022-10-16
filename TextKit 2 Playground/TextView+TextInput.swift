@@ -222,5 +222,24 @@ extension TextView: NSTextInputClient {
         return characterIndex
     }
 
-    // TODO: add appropriate optional methods on NSTextInputClient (like attributedString())
+    // MARK: - Optional methods
+
+    func attributedString() -> NSAttributedString {
+        textStorage
+    }
+
+    // TODO: finish optional methods
+
+//    func fractionOfDistanceThroughGlyph(for point: NSPoint) -> CGFloat {
+//    }
+//
+//    func baselineDeltaForCharacter(at anIndex: Int) -> CGFloat {
+//    }
+//
+//    func windowLevel() -> Int {
+//    }
+
+    func drawsVerticallyForCharacter(at charIndex: Int) -> Bool {
+        false
+    }
 }
