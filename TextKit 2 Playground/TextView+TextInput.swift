@@ -230,14 +230,14 @@ extension TextView: NSTextInputClient {
 
     // TODO: finish optional methods
 
-//    func fractionOfDistanceThroughGlyph(for point: NSPoint) -> CGFloat {
-//    }
-//
-//    func baselineDeltaForCharacter(at anIndex: Int) -> CGFloat {
-//    }
-//
-//    func windowLevel() -> Int {
-//    }
+    // func fractionOfDistanceThroughGlyph(for point: NSPoint) -> CGFloat {
+    // }
+    //
+    // func baselineDeltaForCharacter(at anIndex: Int) -> CGFloat {
+    // }
+    //
+    // func windowLevel() -> Int {
+    // }
 
     func drawsVerticallyForCharacter(at charIndex: Int) -> Bool {
         false
