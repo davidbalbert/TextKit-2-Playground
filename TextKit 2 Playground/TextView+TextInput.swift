@@ -30,8 +30,6 @@ extension TextView {
     }
 
     func setMarkedText(_ string: Any, selectedRange: NSRange, replacementTextSelections: [NSTextSelection]?) {
-        print("inner setMarkedText(_:selectedRange:replacementTextSelections:)", string, selectedRange, replacementTextSelections)
-
         guard let attributedString = NSAttributedString(anyString: string, attributes: typingAttributes) else {
             return
         }
@@ -118,9 +116,9 @@ extension TextView {
 
 extension TextView: NSTextInputClient {
     func insertText(_ string: Any, replacementRange: NSRange) {
-        guard isEditable else { return }
+        // print("insertText(_:replacementRange:)", string, replacementRange == .notFound ? "NSRange.notFound" : replacementRange)
 
-        print("insertText(_:replacementRange:)", string, replacementRange == .notFound ? "NSRange.notFound" : replacementRange)
+        guard isEditable else { return }
 
         insertText(string, replacementTextSelections: replacementTextSelections(for: replacementRange))
     }
@@ -137,15 +135,15 @@ extension TextView: NSTextInputClient {
 
     // selectedRange - the new in the coordinate system of the string
     func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
-        guard isEditable else { return }
+        // print("setMarkedText(_:selectedRange:replacementRange:)", string, selectedRange == .notFound ? "NSRange.notFound" : selectedRange, replacementRange == .notFound ? "NSRange.notFound" : replacementRange)
 
-        print("setMarkedText(_:selectedRange:replacementRange:)", string, selectedRange == .notFound ? "NSRange.notFound" : selectedRange, replacementRange == .notFound ? "NSRange.notFound" : replacementRange)
+        guard isEditable else { return }
 
         setMarkedText(string, selectedRange: selectedRange, replacementTextSelections: replacementTextSelections(for: replacementRange))
     }
 
     func unmarkText() {
-        print("unmarkText()")
+        // print("unmarkText()")
         textSelections = textSelections.map(\.unmarked)
         inputContext?.discardMarkedText()
     }
@@ -172,7 +170,7 @@ extension TextView: NSTextInputClient {
     }
 
     func attributedSubstring(forProposedRange range: NSRange, actualRange: NSRangePointer?) -> NSAttributedString? {
-        print("attributedSubstring(forProposedRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange?.pointee)
+        // print("attributedSubstring(forProposedRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange?.pointee)
 
         if let range = range.intersection(NSRange(textContentStorage.documentRange, in: textContentStorage)) {
             return textStorage.attributedSubstring(from: range)
@@ -188,7 +186,7 @@ extension TextView: NSTextInputClient {
     }
 
     func firstRect(forCharacterRange range: NSRange, actualRange: NSRangePointer?) -> NSRect {
-        print("firstRect(forCharacterRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange?.pointee)
+        // print("firstRect(forCharacterRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange?.pointee)
         guard let textRange = NSTextRange(range, in: textContentStorage) else { return .zero }
 
         var rect: NSRect = .zero
@@ -209,7 +207,7 @@ extension TextView: NSTextInputClient {
     }
 
     func characterIndex(for screenPoint: NSPoint) -> Int {
-        print("characterIndex(for:)", screenPoint)
+        // print("characterIndex(for:)", screenPoint)
         guard let window = window else {
             return NSNotFound
         }
