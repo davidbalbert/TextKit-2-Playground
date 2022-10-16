@@ -14,6 +14,10 @@ class MarkedTextSelection: NSTextSelection {
         _markedTextRange
     }
 
+    override var replacementRange: NSTextRange? {
+        markedTextRange
+    }
+
     init(_ textRanges: [NSTextRange], affinity: NSTextSelection.Affinity, granularity: NSTextSelection.Granularity, markedRange: NSTextRange) {
         _markedTextRange = markedRange
         super.init(textRanges, affinity: affinity, granularity: granularity)

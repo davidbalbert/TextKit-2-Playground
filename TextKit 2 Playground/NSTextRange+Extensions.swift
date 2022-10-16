@@ -19,4 +19,12 @@ extension NSTextRange {
 
         self.init(location: location, end: endLocation)
     }
+
+    convenience init?(location: NSTextLocation, length: Int, in textElementProvider: NSTextElementProvider) {
+        guard let endLocation = textElementProvider.location?(location, offsetBy: length) else {
+            return nil
+        }
+
+        self.init(location: location, end: endLocation)
+    }
 }

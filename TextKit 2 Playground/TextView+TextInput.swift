@@ -30,6 +30,8 @@ extension TextView {
     }
 
     func setMarkedText(_ string: Any, selectedRange: NSRange, replacementTextSelections: [NSTextSelection]?) {
+        print("inner setMarkedText(_:selectedRange:replacementTextSelections:)", string, selectedRange, replacementTextSelections)
+
         guard let attributedString = NSAttributedString(anyString: string, attributes: typingAttributes) else {
             return
         }
@@ -43,9 +45,18 @@ extension TextView {
                 internalReplaceCharacters(in: textSelections, with: "")
                 unmarkText()
             } else {
-                let previousSelections = textSelections
+                let rangesToMark: [NSTextRange] = textSelections.compactMap { selection in
+                    guard let location = selection.replacementRange?.location else {
+                        return nil
+                    }
+
+                    return NSTextRange(location: location, length: attributedString.length, in: textContentStorage)
+                }
+
                 internalReplaceCharacters(in: textSelections, with: attributedString)
-                textSelections = previousSelections.compactMap { $0.markedSelection(for: attributedString, selectedRange: selectedRange, in: textContentStorage) }
+
+                assert(textSelections.count == rangesToMark.count)
+                textSelections = zip(textSelections, rangesToMark).map { $0.mark($1) }
             }
         }
 
@@ -161,9 +172,13 @@ extension TextView: NSTextInputClient {
     }
 
     func attributedSubstring(forProposedRange range: NSRange, actualRange: NSRangePointer?) -> NSAttributedString? {
-        print("attributedSubstring(forProposedRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange)
+        print("attributedSubstring(forProposedRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange?.pointee)
 
-        return nil
+        if let range = range.intersection(NSRange(textContentStorage.documentRange, in: textContentStorage)) {
+            return textStorage.attributedSubstring(from: range)
+        } else {
+            return nil
+        }
     }
 
     func validAttributesForMarkedText() -> [NSAttributedString.Key] {
@@ -173,8 +188,8 @@ extension TextView: NSTextInputClient {
     }
 
     func firstRect(forCharacterRange range: NSRange, actualRange: NSRangePointer?) -> NSRect {
-        print("firstRect(forCharacterRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange)
-        guard let textRange = NSTextRange(range, in: textContentStorage) else { return .zero  }
+        print("firstRect(forCharacterRange:actualRange:)", range == .notFound ? "NSRange.notFound" : range, actualRange?.pointee)
+        guard let textRange = NSTextRange(range, in: textContentStorage) else { return .zero }
 
         var rect: NSRect = .zero
         textLayoutManager.enumerateTextSegments(in: textRange, type: .standard) { segmentTextRange, segmentRect, _, _ in
@@ -193,7 +208,6 @@ extension TextView: NSTextInputClient {
         return screenRect
     }
 
-    // TODO: there's a bug where if you hold "e" and then instead of selecting an accented character from the popup window, click elsewhere in the same paragraph, your selection won't move to the location you click, it will move somewhere in a previous paragraph
     func characterIndex(for screenPoint: NSPoint) -> Int {
         print("characterIndex(for:)", screenPoint)
         guard let window = window else {

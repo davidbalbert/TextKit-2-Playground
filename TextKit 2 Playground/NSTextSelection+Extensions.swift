@@ -20,20 +20,12 @@ extension NSTextSelection {
         nil
     }
 
-    func markedSelection(for markedString: NSAttributedString, selectedRange: NSRange, in textElementProvider: NSTextElementProvider) -> MarkedTextSelection? {
-        guard let firstTextRange = textRanges.first else {
-            return nil
-        }
+    @objc var replacementRange: NSTextRange? {
+        textRanges.first
+    }
 
-        let markLocation = firstTextRange.location
-        guard let markEnd = textElementProvider.location?(markLocation, offsetBy: markedString.length) else { return nil }
-        guard let markedRange = NSTextRange(location: markLocation, end: markEnd) else { return nil }
-
-        guard let selectionLocation = textElementProvider.location?(firstTextRange.location, offsetBy: selectedRange.location) else { return nil }
-        guard let selectionEnd = textElementProvider.location?(selectionLocation, offsetBy: selectedRange.length) else { return nil }
-        guard let selectedRange = NSTextRange(location: selectionLocation, end: selectionEnd) else { return nil}
-
-        return MarkedTextSelection([selectedRange], affinity: affinity, granularity: granularity, markedRange: markedRange)
+    func mark(_ markedRange: NSTextRange) -> MarkedTextSelection {
+        MarkedTextSelection(textRanges, affinity: affinity, granularity: granularity, markedRange: markedRange)
     }
 
     func contiguousTextSelection(offsetBy offset: Int, length: Int, in textElementProvider: NSTextElementProvider) -> NSTextSelection? {
